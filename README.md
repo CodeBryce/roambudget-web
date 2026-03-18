@@ -1,25 +1,25 @@
 # RoamBudget Web 💸
-The frontend for **RoamBudget**, a modern group trip expense coordinator. 
+A modern, responsive frontend for the **RoamBudget** trip expense coordinator. 
 
 **Live Demo:** [https://CodeBryce.github.io/roambudget-web/](https://CodeBryce.github.io/roambudget-web/)
 
 ## ✨ Key Features
-- **User Authentication:** Secure Sign Up / Login powered by Supabase Auth.
-- **Private Sessions:** Users see only their own trip data; expenses are never shared between accounts.
-- **Real-time Totals:** Automatic calculation of trip costs and category breakdowns.
-- **Responsive Design:** Built with Tailwind CSS for a seamless mobile and desktop experience.
+- **Secure Authentication:** Integrated Sign Up and Login flow powered by Supabase Auth.
+- **User-Specific Persistence:** Secure session handling ensures users only access their own private expenses.
+- **Dynamic Cost Calculation:** Real-time logic for total trip costs and category-based spending breakdowns.
+- **Mobile-First Design:** Fully responsive UI built with Tailwind CSS.
 
-## 🧠 Technical Overview
-This frontend communicates with a custom FastAPI backend. Instead of a shared database, this version implements **Option 3: Authentication**, where the frontend captures a user session token and passes it via Bearer Authorization headers to the API.
+## 🧠 Architecture Overview
+The application follows a decoupled architecture. The frontend manages user sessions via the Supabase JS SDK and communicates with a custom Python API. Every request includes a Bearer Token in the Authorization header to verify identity and maintain data integrity.
 
 ## 🛠️ Tech Stack
-- **Frontend:** HTML5 / JavaScript (ES6)
-- **Styling:** Tailwind CSS (CDN)
-- **Backend Communication:** Fetch API with JWT Headers
-- **Auth Provider:** Supabase JS SDK
+- **Frontend:** HTML5 / JavaScript (ES6+)
+- **Styling:** Tailwind CSS
+- **API Interaction:** Fetch API with JWT Authorization headers
+- **Session Management:** Supabase JS SDK
 - **Hosting:** GitHub Pages
 
-## 📖 How to Use
-1. **Create an Account:** Use the Sign Up button to create a private workspace.
-2. **Add Expenses:** Log your items (Lodging, Food, etc.).
-3. **Manage:** Use the 🗑️ icon to remove entries. Your data is saved to your account and persists across devices.
+## 📖 Usage
+1. **Register:** Create a private account to start a new trip.
+2. **Track:** Log expenses by name, category, and cost.
+3. **Manage:** View real-time totals or remove items using the delete functionality. Data persists across devices and sessions.
