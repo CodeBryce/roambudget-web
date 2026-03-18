@@ -165,10 +165,18 @@
                 const response = await fetch(API_URL, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 const data = await response.json();
-                renderUI(data, token);
+        
+                // If the server sent an error (500), data will be {detail: "error message"}
+                // We need to check if it's actually an Array before calling renderUI
+                if (Array.isArray(data)) {
+                    renderUI(data, token);
+                } else {
+                    console.error("Server returned an error instead of a list:", data);
+                }
             } catch (err) {
-                console.error("API Error:", err);
+                console.error("API Connection Error:", err);
             }
         }
 
