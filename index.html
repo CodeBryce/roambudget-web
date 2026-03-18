@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoamBudget | Secure Trip Tracker</title>
+    <title>RoamBudget | Secure Group Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -56,20 +56,21 @@
                     </div>
                 </div>
                 <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center min-w-[220px]">
-                    <p class="text-xs uppercase tracking-widest font-semibold opacity-80">My Private Total</p>
+                    <p class="text-xs uppercase tracking-widest font-semibold opacity-80">Trip Total</p>
                     <h2 id="total-cost" class="text-4xl font-bold mt-1">$0.00</h2>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-lg font-bold mb-4 text-slate-700">Add New Expense</h3>
                 <form id="expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Expense Name</label>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Item Name</label>
                         <input type="text" id="item_name" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-600 mb-1">Amount ($)</label>
-                        <input type="number" id="amount" step="0.01" required class="w-full p-2 border rounded-lg outline-none">
+                        <input type="number" id="amount" step="0.01" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-600 mb-1">Category</label>
@@ -78,21 +79,33 @@
                             <option value="Food">Food</option>
                             <option value="Transport">Transport</option>
                             <option value="Activity">Activity</option>
+                            <option value="Misc">Misc</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Paid By</label>
+                        <input type="text" id="paid_by" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Split Between (# of People)</label>
+                        <input type="number" id="split_count" value="1" min="1" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
                     <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition">
-                        Add to My Trip
+                        Add to Trip
                     </button>
                 </form>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div id="category-summary" class="flex flex-wrap gap-2 mb-6"></div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-sm">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
                             <th class="p-4">Item</th>
                             <th class="p-4">Category</th>
-                            <th class="p-4 text-right">Cost</th>
+                            <th class="p-4 text-right">Total</th>
+                            <th class="p-4 text-right">Per Person</th>
                             <th class="p-4 text-center">Action</th>
                         </tr>
                     </thead>
@@ -104,58 +117,43 @@
 
     <script>
         // --- 1. CONFIGURATION ---
-        const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; // Paste your URL here
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; // Paste your Anon Key here
-        const API_URL = "https://roambudget-server.onrender.com/expenses"; // Paste your Render link here
+        const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; 
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
+        const API_URL = "https://roambudget-server.onrender.com/expenses"; 
 
-        // Initialize Supabase Client
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         // --- 2. AUTHENTICATION LOGIC ---
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
             if (session) {
-                // User is logged in
                 document.getElementById('auth-container').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
                 document.getElementById('user-email').innerText = session.user.email;
                 fetchExpenses(session.access_token);
             } else {
-                // User is logged out
                 document.getElementById('auth-container').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
         }
 
-        // Handle Signup
         document.getElementById('btn-signup').onclick = async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signUp({ email, password });
-            
-            if (error) {
-                document.getElementById('auth-msg').innerText = error.message;
-            } else {
-                alert("Success! Check your email for a confirmation link.");
-            }
+            if (error) document.getElementById('auth-msg').innerText = error.message;
+            else alert("Account created! You can now log in.");
         };
 
-        // Handle Login
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            
-            if (error) {
-                document.getElementById('auth-msg').innerText = "Login failed: " + error.message;
-            } else {
-                checkUserSession(); // This will refresh UI to the app
-            }
+            if (error) document.getElementById('auth-msg').innerText = "Login failed: " + error.message;
+            else checkUserSession();
         };
 
-        // Handle Logout
         document.getElementById('btn-logout').onclick = async () => {
             await supabaseClient.auth.signOut();
             checkUserSession();
@@ -177,29 +175,52 @@
         function renderUI(expenses, token) {
             const tableBody = document.getElementById('expense-table-body');
             const totalDisplay = document.getElementById('total-cost');
+            const summaryDiv = document.getElementById('category-summary');
+            
             tableBody.innerHTML = '';
+            summaryDiv.innerHTML = '';
             let total = 0;
+            const catTotals = {};
 
             if (expenses.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-slate-400">Empty Trip! Add something above.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium italic">Empty Trip! Add something above.</td></tr>`;
                 totalDisplay.innerText = "$0.00";
                 return;
             }
 
             expenses.forEach(exp => {
                 total += exp.amount;
+                catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
+                const perPerson = exp.amount / (exp.split_count || 1);
+
                 const row = `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-4 font-bold text-slate-700">${exp.item_name}</td>
-                        <td class="p-4"><span class="px-2 py-1 text-[10px] bg-indigo-50 text-indigo-600 rounded-full font-bold uppercase">${exp.category}</span></td>
-                        <td class="p-4 text-right font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-700">${exp.item_name}</div>
+                            <div class="text-xs text-slate-400 italic">Paid by ${exp.paid_by || 'Me'}</div>
+                        </td>
                         <td class="p-4 text-center">
-                            <button onclick="deleteExp(${exp.id}, '${token}')" class="text-slate-300 hover:text-red-500 transition px-2">🗑️</button>
+                            <span class="px-2 py-1 text-[10px] bg-indigo-50 text-indigo-600 rounded-full font-bold uppercase">${exp.category}</span>
+                        </td>
+                        <td class="p-4 text-right font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-4 text-right text-indigo-500 font-medium">$${perPerson.toFixed(2)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteExp(${exp.id}, '${token}')" class="text-slate-300 hover:text-red-500 transition px-2 text-xl">🗑️</button>
                         </td>
                     </tr>`;
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
+
             totalDisplay.innerText = `$${total.toFixed(2)}`;
+            
+            // Render category chips
+            for (const [cat, sum] of Object.entries(catTotals)) {
+                summaryDiv.innerHTML += `
+                    <div class="bg-white border rounded-full px-4 py-1 text-xs shadow-sm font-medium text-slate-600">
+                        ${cat}: <span class="text-slate-400">$${sum.toFixed(2)}</span>
+                    </div>
+                `;
+            }
         }
 
         document.getElementById('expense-form').onsubmit = async (e) => {
@@ -210,8 +231,8 @@
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
                 category: document.getElementById('category').value,
-                paid_by: "Me", // Logic is now user-based
-                split_count: 1
+                paid_by: document.getElementById('paid_by').value,
+                split_count: parseInt(document.getElementById('split_count').value)
             };
 
             await fetch(API_URL, {
@@ -236,7 +257,6 @@
             fetchExpenses(token);
         }
 
-        // Initialize on page load
         checkUserSession();
     </script>
 </body>
