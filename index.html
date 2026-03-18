@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoamBudget | Trip Expense Tracker</title>
+    <title>RoamBudget | Group Trip Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .empty-state { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -18,7 +20,7 @@
                 <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
                     ✈️ RoamBudget
                 </h1>
-                <p class="text-slate-500">Shared expenses for the crew.</p>
+                <p class="text-slate-500">Track and split trip costs with ease.</p>
             </div>
             <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center min-w-[200px]">
                 <p class="text-xs uppercase tracking-widest font-semibold opacity-80">Total Trip Cost</p>
@@ -31,15 +33,15 @@
             <form id="expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-slate-600 mb-1">Item Name</label>
-                    <input type="text" id="item_name" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" id="item_name" placeholder="e.g. AirBNB, Dinner, Gas" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1">Amount ($)</label>
-                    <input type="number" id="amount" step="0.01" required class="w-full p-2 border rounded-lg outline-none">
+                    <input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full p-2 border rounded-lg outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1">Category</label>
-                    <select id="category" class="w-full p-2 border rounded-lg outline-none">
+                    <select id="category" class="w-full p-2 border rounded-lg outline-none cursor-pointer">
                         <option value="Lodging">Lodging</option>
                         <option value="Food">Food</option>
                         <option value="Transport">Transport</option>
@@ -49,13 +51,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1">Paid By</label>
-                    <input type="text" id="paid_by" required class="w-full p-2 border rounded-lg outline-none">
+                    <input type="text" id="paid_by" placeholder="Your Name" required class="w-full p-2 border rounded-lg outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1">Split Between (People)</label>
                     <input type="number" id="split_count" value="1" min="1" required class="w-full p-2 border rounded-lg outline-none">
                 </div>
-                <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md">
+                <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md active:scale-[0.98]">
                     Add to Trip
                 </button>
             </form>
@@ -66,12 +68,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
-                        <th class="p-4">Item</th>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b text-center">
+                        <th class="p-4 text-left">Item</th>
                         <th class="p-4">Category</th>
                         <th class="p-4 text-right">Total</th>
                         <th class="p-4 text-right">Per Person</th>
-                        <th class="p-4 text-center">Action</th>
+                        <th class="p-4">Action</th>
                     </tr>
                 </thead>
                 <tbody id="expense-table-body">
@@ -81,10 +83,9 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
+        // REPLACE THIS WITH YOUR NEW RENDER URL
         const API_URL = "https://roambudget-server.onrender.com/expenses";
 
-        // --- FETCH DATA ---
         async function fetchExpenses() {
             try {
                 const response = await fetch(API_URL);
@@ -95,7 +96,6 @@
             }
         }
 
-        // --- RENDER UI ---
         function renderUI(expenses) {
             const tableBody = document.getElementById('expense-table-body');
             const totalDisplay = document.getElementById('total-cost');
@@ -107,10 +107,23 @@
             let grandTotal = 0;
             const catTotals = {};
 
+            // EMPTY STATE CHECK
+            if (expenses.length === 0) {
+                tableBody.innerHTML = `
+                    <tr class="empty-state">
+                        <td colspan="5" class="p-12 text-center text-slate-400">
+                            <div class="text-4xl mb-2">🏖️</div>
+                            <p class="font-medium">No expenses yet. Add one above to get started!</p>
+                        </td>
+                    </tr>
+                `;
+                totalDisplay.innerText = "$0.00";
+                return;
+            }
+
             expenses.forEach(exp => {
                 grandTotal += exp.amount;
                 catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
-
                 const perPerson = exp.amount / (exp.split_count || 1);
 
                 const row = `
@@ -119,7 +132,7 @@
                             <div class="font-bold text-slate-700">${exp.item_name}</div>
                             <div class="text-xs text-slate-400 italic">Paid by ${exp.paid_by}</div>
                         </td>
-                        <td class="p-4">
+                        <td class="p-4 text-center">
                             <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-indigo-50 text-indigo-600 uppercase">
                                 ${exp.category}
                             </span>
@@ -127,7 +140,7 @@
                         <td class="p-4 text-right font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
                         <td class="p-4 text-right text-indigo-500 font-medium">$${perPerson.toFixed(2)}</td>
                         <td class="p-4 text-center">
-                            <button onclick="deleteExpense(${exp.id})" class="text-slate-300 hover:text-red-500 transition px-2">
+                            <button onclick="deleteExpense(${exp.id})" title="Delete" class="text-slate-300 hover:text-red-500 transition px-2 text-xl">
                                 🗑️
                             </button>
                         </td>
@@ -136,23 +149,25 @@
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
-            // Update Total Trip Cost
             totalDisplay.innerText = `$${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 
-            // Render Category Chips
             for (const [cat, total] of Object.entries(catTotals)) {
                 summaryDiv.innerHTML += `
-                    <div class="bg-white border rounded-full px-4 py-1 text-sm shadow-sm">
-                        <span class="font-bold">${cat}:</span> $${total.toFixed(2)}
+                    <div class="bg-white border rounded-full px-4 py-1 text-sm shadow-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                        <span class="font-bold text-slate-600">${cat}:</span> 
+                        <span class="text-slate-500">$${total.toFixed(2)}</span>
                     </div>
                 `;
             }
         }
 
-        // --- ADD EXPENSE ---
         document.getElementById('expense-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+            const btn = e.target.querySelector('button');
+            btn.innerText = "Adding...";
+            btn.disabled = true;
+
             const payload = {
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
@@ -162,29 +177,30 @@
                 is_booked: false
             };
 
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            e.target.reset();
-            fetchExpenses();
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                e.target.reset();
+                fetchExpenses();
+            } finally {
+                btn.innerText = "Add to Trip";
+                btn.disabled = false;
+            }
         });
 
-        // --- DELETE EXPENSE ---
         async function deleteExpense(id) {
-            if (!confirm("Remove this item from the trip?")) return;
-            
+            if (!confirm("Are you sure you want to remove this expense?")) return;
             try {
                 await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
                 fetchExpenses();
             } catch (err) {
-                alert("Error deleting item.");
+                alert("Could not delete. Check your connection.");
             }
         }
 
-        // Initial Load
         fetchExpenses();
     </script>
 </body>
