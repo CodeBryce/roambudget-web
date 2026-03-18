@@ -3,160 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoamBudget | Trip Planner</title>
+    <title>RoamBudget | Trip Expense Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
-                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">✈️ RoamBudget</h1>
+                <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                    ✈️ RoamBudget
+                </h1>
                 <p class="text-slate-500">Shared expenses for the crew.</p>
             </div>
-            <div id="total-card" class="bg-indigo-600 text-white p-6 rounded-2xl shadow-xl text-center min-w-[200px]">
-                <p class="text-indigo-100 text-sm uppercase font-bold">Total Trip Cost</p>
-                <h2 id="total-amount" class="text-3xl font-black font-mono">$0.00</h2>
+            <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center min-w-[200px]">
+                <p class="text-xs uppercase tracking-widest font-semibold opacity-80">Total Trip Cost</p>
+                <h2 id="total-cost" class="text-4xl font-bold mt-1">$0.00</h2>
             </div>
-        </header>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="lg:col-span-1">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-xl font-bold mb-4 text-slate-800">Add New Expense</h3>
-                    <form id="expense-form" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Item Name</label>
-                            <input type="text" id="item_name" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Amount ($)</label>
-                                <input type="number" id="amount" step="0.01" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Category</label>
-                                <select id="category" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                                    <option>Lodging</option>
-                                    <option>Transport</option>
-                                    <option>Food</option>
-                                    <option>Activity</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Paid By</label>
-                            <input type="text" id="paid_by" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Split Between (People)</label>
-                            <input type="number" id="split_count" value="1" min="1" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition duration-200 shadow-md">
-                            Add to Trip
-                        </button>
-                    </form>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+            <h3 class="text-lg font-bold mb-4 text-slate-700">Add New Expense</h3>
+            <form id="expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">Item Name</label>
+                    <input type="text" id="item_name" required class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
-            </div>
-
-            <div class="lg:col-span-2 space-y-8">
-                <div id="category-chips" class="flex flex-wrap gap-2">
-                    </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th class="p-4 text-xs uppercase font-bold text-slate-500">Item</th>
-                                <th class="p-4 text-xs uppercase font-bold text-slate-500">Category</th>
-                                <th class="p-4 text-xs uppercase font-bold text-slate-500 text-right">Total</th>
-                                <th class="p-4 text-xs uppercase font-bold text-slate-500 text-right">Per Person</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expense-list" class="divide-y divide-slate-100">
-                            </tbody>
-                    </table>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">Amount ($)</label>
+                    <input type="number" id="amount" step="0.01" required class="w-full p-2 border rounded-lg outline-none">
                 </div>
-            </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">Category</label>
+                    <select id="category" class="w-full p-2 border rounded-lg outline-none">
+                        <option value="Lodging">Lodging</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Activity">Activity</option>
+                        <option value="Misc">Misc</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">Paid By</label>
+                    <input type="text" id="paid_by" required class="w-full p-2 border rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1">Split Between (People)</label>
+                    <input type="number" id="split_count" value="1" min="1" required class="w-full p-2 border rounded-lg outline-none">
+                </div>
+                <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md">
+                    Add to Trip
+                </button>
+            </form>
+        </div>
+
+        <div id="category-summary" class="flex flex-wrap gap-2 mb-6"></div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
+                        <th class="p-4">Item</th>
+                        <th class="p-4">Category</th>
+                        <th class="p-4 text-right">Total</th>
+                        <th class="p-4 text-right">Per Person</th>
+                        <th class="p-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-table-body">
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <script>
+        // --- CONFIGURATION ---
         const API_URL = "https://roambudget-server.onrender.com/expenses";
 
+        // --- FETCH DATA ---
         async function fetchExpenses() {
             try {
                 const response = await fetch(API_URL);
-                const expenses = await response.json();
-                renderUI(expenses);
-            } catch (err) { console.error("Fetch error:", err); }
+                const data = await response.json();
+                renderUI(data);
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
         }
 
+        // --- RENDER UI ---
         function renderUI(expenses) {
-            const list = document.getElementById('expense-list');
-            const totalDisplay = document.getElementById('total-amount');
-            const chipContainer = document.getElementById('category-chips');
+            const tableBody = document.getElementById('expense-table-body');
+            const totalDisplay = document.getElementById('total-cost');
+            const summaryDiv = document.getElementById('category-summary');
             
-            let totalTrip = 0;
-            let categories = {};
-
-            list.innerHTML = "";
+            tableBody.innerHTML = '';
+            summaryDiv.innerHTML = '';
             
-            expenses.forEach(item => {
-                totalTrip += item.amount;
-                categories[item.category] = (categories[item.category] || 0) + item.amount;
+            let grandTotal = 0;
+            const catTotals = {};
 
-                const perPerson = item.amount / (item.split_count || 1);
-                
-                list.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 font-semibold text-slate-800">${item.item_name}<br><span class="text-xs text-slate-400 font-normal">Paid by ${item.paid_by}</span></td>
-                        <td class="p-4"><span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold uppercase">${item.category}</span></td>
-                        <td class="p-4 text-right font-mono font-bold text-slate-700">$${item.amount.toFixed(2)}</td>
-                        <td class="p-4 text-right font-mono text-indigo-500">$${perPerson.toFixed(2)}</td>
+            expenses.forEach(exp => {
+                grandTotal += exp.amount;
+                catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
+
+                const perPerson = exp.amount / (exp.split_count || 1);
+
+                const row = `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-4">
+                            <div class="font-bold text-slate-700">${exp.item_name}</div>
+                            <div class="text-xs text-slate-400 italic">Paid by ${exp.paid_by}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-indigo-50 text-indigo-600 uppercase">
+                                ${exp.category}
+                            </span>
+                        </td>
+                        <td class="p-4 text-right font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-4 text-right text-indigo-500 font-medium">$${perPerson.toFixed(2)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteExpense(${exp.id})" class="text-slate-300 hover:text-red-500 transition px-2">
+                                🗑️
+                            </button>
+                        </td>
                     </tr>
                 `;
+                tableBody.insertAdjacentHTML('beforeend', row);
             });
 
-            totalDisplay.innerText = `$${totalTrip.toFixed(2)}`;
+            // Update Total Trip Cost
+            totalDisplay.innerText = `$${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 
             // Render Category Chips
-            chipContainer.innerHTML = "";
-            for (const [cat, amt] of Object.entries(categories)) {
-                chipContainer.innerHTML += `
-                    <div class="bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm text-sm">
-                        <span class="font-bold text-slate-800">${cat}:</span> $${amt.toFixed(2)}
+            for (const [cat, total] of Object.entries(catTotals)) {
+                summaryDiv.innerHTML += `
+                    <div class="bg-white border rounded-full px-4 py-1 text-sm shadow-sm">
+                        <span class="font-bold">${cat}:</span> $${total.toFixed(2)}
                     </div>
                 `;
             }
         }
 
-        // Handle Form Submit
+        // --- ADD EXPENSE ---
         document.getElementById('expense-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const newExpense = {
+            const payload = {
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
                 category: document.getElementById('category').value,
                 paid_by: document.getElementById('paid_by').value,
                 split_count: parseInt(document.getElementById('split_count').value),
-                is_booked: true
+                is_booked: false
             };
 
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newExpense)
+                body: JSON.stringify(payload)
             });
 
-            if (response.ok) {
-                document.getElementById('expense-form').reset();
-                fetchExpenses(); // Refresh list
-            }
+            e.target.reset();
+            fetchExpenses();
         });
 
+        // --- DELETE EXPENSE ---
+        async function deleteExpense(id) {
+            if (!confirm("Remove this item from the trip?")) return;
+            
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                fetchExpenses();
+            } catch (err) {
+                alert("Error deleting item.");
+            }
+        }
+
+        // Initial Load
         fetchExpenses();
     </script>
 </body>
