@@ -6,7 +6,8 @@
     <title>RoamBudget | Secure Group Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .hidden { display: none; }
@@ -16,11 +17,11 @@
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         
         <div id="auth-container" class="auth-card bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md mx-auto mt-20">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-indigo-600">✈️ RoamBudget</h2>
+                <h2 class="text-3xl font-bold text-indigo-600 tracking-tight">✈️ RoamBudget</h2>
                 <p class="text-slate-500 mt-2">Sign in to manage your private trip.</p>
             </div>
             
@@ -47,70 +48,77 @@
         </div>
 
         <div id="app-container" class="hidden">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">RoamBudget</h1>
+                    <h1 class="text-4xl font-black text-slate-900 flex items-center gap-2 tracking-tight">RoamBudget</h1>
                     <div class="flex items-center gap-2 mt-1">
                         <span id="user-email" class="text-sm text-slate-400 font-medium italic"></span>
-                        <button id="btn-logout" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest border-l pl-2">Sign Out</button>
+                        <button id="btn-logout" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest border-l pl-2 transition">Sign Out</button>
                     </div>
                 </div>
-                <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center min-w-[220px]">
-                    <p class="text-xs uppercase tracking-widest font-semibold opacity-80">Trip Total</p>
-                    <h2 id="total-cost" class="text-4xl font-bold mt-1">$0.00</h2>
+                <div class="bg-indigo-600 text-white p-6 rounded-3xl shadow-2xl text-center min-w-[260px] transform hover:scale-105 transition">
+                    <p class="text-xs uppercase tracking-widest font-bold opacity-80">Current Trip Total</p>
+                    <h2 id="total-cost" class="text-5xl font-black mt-1">$0.00</h2>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
-                <h3 class="text-lg font-bold mb-4 text-slate-700">Add New Expense</h3>
-                <form id="expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Item Name</label>
-                        <input type="text" id="item_name" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Category Split</h3>
+                        <canvas id="budgetChart" class="max-h-[250px]"></canvas>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Amount ($)</label>
-                        <input type="number" id="amount" step="0.01" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Category</label>
-                        <select id="category" class="w-full p-2 border rounded-lg outline-none">
-                            <option value="Lodging">Lodging</option>
-                            <option value="Food">Food</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Activity">Activity</option>
-                            <option value="Misc">Misc</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Paid By</label>
-                        <input type="text" id="paid_by" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Split Between (# of People)</label>
-                        <input type="number" id="split_count" value="1" min="1" required class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <button type="submit" class="md:col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition">
-                        Add to Trip
-                    </button>
-                </form>
-            </div>
 
-            <div id="category-summary" class="flex flex-wrap gap-2 mb-6"></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold mb-4 text-slate-800">New Expense</h3>
+                        <form id="expense-form" class="space-y-4">
+                            <input type="text" id="item_name" placeholder="Item (e.g. Airbnb)" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" id="amount" step="0.01" placeholder="$ Amount" required class="p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                <select id="category" class="p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Lodging">🏨 Lodging</option>
+                                    <option value="Food">🍔 Food</option>
+                                    <option value="Transport">✈️ Transport</option>
+                                    <option value="Activity">🎟️ Activity</option>
+                                    <option value="Misc">📦 Misc</option>
+                                </select>
+                            </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-sm">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
-                            <th class="p-4">Item</th>
-                            <th class="p-4">Category</th>
-                            <th class="p-4 text-right">Total</th>
-                            <th class="p-4 text-right">Per Person</th>
-                            <th class="p-4 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expense-table-body"></tbody>
-                </table>
+                            <input type="text" id="paid_by" placeholder="Who paid?" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                            
+                            <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-xl">
+                                <span class="text-xs font-bold text-indigo-600 uppercase">Split By</span>
+                                <input type="number" id="split_count" value="1" min="1" required class="w-16 p-1 bg-white border rounded-lg text-center font-bold">
+                                <span class="text-xs text-indigo-400 font-medium">People</span>
+                            </div>
+
+                            <button type="submit" id="btn-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition active:scale-95 disabled:opacity-50">
+                                Add to Trip
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div id="category-summary" class="flex flex-wrap gap-2"></div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b">
+                                    <th class="p-5">Details</th>
+                                    <th class="p-5 text-center">Category</th>
+                                    <th class="p-5 text-right">Cost</th>
+                                    <th class="p-5 text-right">Per Person</th>
+                                    <th class="p-5 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expense-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -122,6 +130,7 @@
         const API_URL = "https://roambudget-server.onrender.com/expenses"; 
 
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        let myChart = null;
 
         // --- 2. AUTHENTICATION LOGIC ---
         async function checkUserSession() {
@@ -142,14 +151,15 @@
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signUp({ email, password });
             if (error) document.getElementById('auth-msg').innerText = error.message;
-            else alert("Account created! You can now log in.");
+            else alert("Account created! Check your email or try logging in.");
         };
 
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const { error } = await supabaseClient.auth.signInWithPassword({
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            });
             if (error) document.getElementById('auth-msg').innerText = "Login failed: " + error.message;
             else checkUserSession();
         };
@@ -159,25 +169,43 @@
             checkUserSession();
         };
 
-        // --- 3. EXPENSE LOGIC ---
+        // --- 3. ANALYTICS (CHART) LOGIC ---
+        function updateChart(catTotals) {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            const labels = Object.keys(catTotals);
+            const data = Object.values(catTotals);
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6'],
+                        hoverOffset: 15,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } } }
+                    },
+                    cutout: '75%'
+                }
+            });
+        }
+
+        // --- 4. EXPENSE LOGIC ---
         async function fetchExpenses(token) {
             try {
                 const response = await fetch(API_URL, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 const data = await response.json();
-        
-                // If the server sent an error (500), data will be {detail: "error message"}
-                // We need to check if it's actually an Array before calling renderUI
-                if (Array.isArray(data)) {
-                    renderUI(data, token);
-                } else {
-                    console.error("Server returned an error instead of a list:", data);
-                }
-            } catch (err) {
-                console.error("API Connection Error:", err);
-            }
+                if (Array.isArray(data)) renderUI(data, token);
+            } catch (err) { console.error("API Error:", err); }
         }
 
         function renderUI(expenses, token) {
@@ -191,8 +219,9 @@
             const catTotals = {};
 
             if (expenses.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium italic">Empty Trip! Add something above.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium italic">Your trip is empty. Log an expense to start tracking!</td></tr>`;
                 totalDisplay.innerText = "$0.00";
+                if (myChart) myChart.destroy();
                 return;
             }
 
@@ -202,39 +231,41 @@
                 const perPerson = exp.amount / (exp.split_count || 1);
 
                 const row = `
-                    <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-4">
-                            <div class="font-bold text-slate-700">${exp.item_name}</div>
-                            <div class="text-xs text-slate-400 italic">Paid by ${exp.paid_by || 'Me'}</div>
+                    <tr class="group hover:bg-slate-50 transition">
+                        <td class="p-5">
+                            <div class="font-bold text-slate-800">${exp.item_name}</div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter italic">Paid by ${exp.paid_by}</div>
                         </td>
-                        <td class="p-4 text-center">
-                            <span class="px-2 py-1 text-[10px] bg-indigo-50 text-indigo-600 rounded-full font-bold uppercase">${exp.category}</span>
+                        <td class="p-5 text-center">
+                            <span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span>
                         </td>
-                        <td class="p-4 text-right font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                        <td class="p-4 text-right text-indigo-500 font-medium">$${perPerson.toFixed(2)}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="deleteExp(${exp.id}, '${token}')" class="text-slate-300 hover:text-red-500 transition px-2 text-xl">🗑️</button>
+                        <td class="p-5 text-right font-black text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
+                        <td class="p-5 text-center">
+                            <button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button>
                         </td>
                     </tr>`;
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
             totalDisplay.innerText = `$${total.toFixed(2)}`;
-            
-            // Render category chips
+            updateChart(catTotals);
+
             for (const [cat, sum] of Object.entries(catTotals)) {
                 summaryDiv.innerHTML += `
-                    <div class="bg-white border rounded-full px-4 py-1 text-xs shadow-sm font-medium text-slate-600">
-                        ${cat}: <span class="text-slate-400">$${sum.toFixed(2)}</span>
-                    </div>
-                `;
+                    <div class="bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">
+                        ${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span>
+                    </div>`;
             }
         }
 
         document.getElementById('expense-form').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = "Saving to Cloud...";
+
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
             const payload = {
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
@@ -243,21 +274,22 @@
                 split_count: parseInt(document.getElementById('split_count').value)
             };
 
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            e.target.reset();
-            fetchExpenses(session.access_token);
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                    body: JSON.stringify(payload)
+                });
+                e.target.reset();
+                fetchExpenses(session.access_token);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Add to Trip";
+            }
         };
 
         async function deleteExp(id, token) {
-            if (!confirm("Remove this?")) return;
+            if (!confirm("Are you sure you want to remove this expense?")) return;
             await fetch(`${API_URL}/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
