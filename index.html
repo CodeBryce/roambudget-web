@@ -118,37 +118,30 @@
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             
-            // Toggle Auth Card
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
             
             if (session) {
                 if (currentTripId) {
-                    // Show Dashboard
                     document.getElementById('trip-selection-container').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     document.getElementById('display-trip-id').innerText = `TRIP: ${currentTripId}`;
                     document.getElementById('user-email').innerText = session.user.email;
                     fetchExpenses(session.access_token);
                 } else {
-                    // Show Trip Selection
                     document.getElementById('app-container').classList.add('hidden');
                     document.getElementById('trip-selection-container').classList.remove('hidden');
                 }
             } else {
-                // Completely logged out
                 document.getElementById('app-container').classList.add('hidden');
                 document.getElementById('trip-selection-container').classList.add('hidden');
             }
         }
 
-        // Fix: Explicit Sign Out Listener
         document.getElementById('btn-logout').onclick = async () => {
-            const { error } = await supabaseClient.auth.signOut();
-            if (!error) {
-                localStorage.removeItem('active_trip_id');
-                currentTripId = null;
-                window.location.reload();
-            }
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('active_trip_id');
+            currentTripId = null;
+            window.location.reload();
         };
 
         document.getElementById('btn-change-trip').onclick = () => {
@@ -172,7 +165,10 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                if (Array.isArray(data)) renderUI(data, token);
+                console.log("Expenses received from server:", data);
+                if (Array.isArray(data)) {
+                    renderUI(data, token);
+                }
             } catch (err) { console.error("Fetch Error:", err); }
         }
 
@@ -181,28 +177,32 @@
             const totalDisplay = document.getElementById('total-cost');
             const summaryDiv = document.getElementById('category-summary');
             tableBody.innerHTML = ''; summaryDiv.innerHTML = '';
-            let total = 0; const catTotals = {};
+            let grandTotal = 0; const catTotals = {};
 
             expenses.forEach(exp => {
-                total += exp.amount;
-                catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
-                const perPerson = exp.amount / (exp.split_count || 1);
+                // FORCE CONVERSION TO NUMBERS (Safety check)
+                const amt = parseFloat(exp.amount) || 0;
+                const splits = parseInt(exp.split_count) || 1;
+                
+                grandTotal += amt;
+                catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
+                const perPerson = amt / splits;
+
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr class="group hover:bg-slate-50 transition">
                         <td class="p-5">
                             <div class="font-bold text-slate-800">${exp.item_name}</div>
-                            <div class="text-[10px] text-slate-400 font-bold uppercase italic text-xs tracking-tighter">Paid By ${exp.paid_by}</div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase italic text-xs tracking-tighter">Paid By ${exp.paid_by || 'Unknown'}</div>
                         </td>
                         <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span></td>
-                        <td class="p-5 text-right font-black text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-5 text-right font-black text-slate-700">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
                         <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button></td>
                     </tr>`);
             });
-            totalDisplay.innerText = `$${total.toFixed(2)}`;
+            totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
             updateChart(catTotals);
 
-            // Re-add category chips for visual summary
             for (const [cat, sum] of Object.entries(catTotals)) {
                 summaryDiv.innerHTML += `<div class="bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span></div>`;
             }
@@ -248,7 +248,7 @@
                 e.target.reset();
                 fetchExpenses(session.access_token);
             } else {
-                alert("Error saving expense. Verify your Trip ID column in Supabase.");
+                alert("Error saving expense. Check if trip_id column exists in Supabase.");
             }
             btn.disabled = false; btn.innerText = "Add to Trip";
         };
@@ -265,11 +265,8 @@
                 email: document.getElementById('email').value, 
                 password: document.getElementById('password').value 
             });
-            if (error) {
-                document.getElementById('auth-msg').innerText = error.message;
-            } else {
-                checkUserSession();
-            }
+            if (error) alert(error.message);
+            else checkUserSession();
         };
 
         document.getElementById('btn-signup').onclick = async () => {
@@ -277,7 +274,7 @@
                 email: document.getElementById('email').value, 
                 password: document.getElementById('password').value 
             });
-            if (error) document.getElementById('auth-msg').innerText = error.message;
+            if (error) alert(error.message);
             else alert("Account created! You can now log in.");
         };
 
