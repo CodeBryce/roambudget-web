@@ -35,9 +35,9 @@
 
         <div id="trip-selection-container" class="hidden auth-card bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md mx-auto mt-20">
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Select a Trip</h2>
-            <p class="text-slate-400 text-sm mb-6">Enter a unique code to join a shared trip or start a new one.</p>
+            <p class="text-slate-400 text-sm mb-6 text-center">Enter a code (e.g. JAMAICA2026)</p>
             <form id="trip-id-form" class="space-y-4">
-                <input type="text" id="input-trip-id" placeholder="e.g. Europe-2026" required class="w-full p-4 bg-slate-50 border-2 border-dashed rounded-xl outline-none focus:border-indigo-500 text-center font-bold uppercase tracking-widest">
+                <input type="text" id="input-trip-id" placeholder="TRIP CODE" required class="w-full p-4 bg-slate-50 border-2 border-dashed rounded-xl outline-none focus:border-indigo-500 text-center font-bold uppercase tracking-widest">
                 <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Enter Trip Dashboard</button>
             </form>
         </div>
@@ -61,7 +61,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Spending Split</h3>
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Spending Split</h3>
                         <canvas id="budgetChart" class="max-h-[220px]"></canvas>
                     </div>
 
@@ -114,12 +114,9 @@
         let myChart = null;
         let currentTripId = localStorage.getItem('active_trip_id');
 
-        // --- 2. AUTH & NAVIGATION ---
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
-            
             if (session) {
                 if (currentTripId) {
                     document.getElementById('trip-selection-container').classList.add('hidden');
@@ -131,22 +128,17 @@
                     document.getElementById('app-container').classList.add('hidden');
                     document.getElementById('trip-selection-container').classList.remove('hidden');
                 }
-            } else {
-                document.getElementById('app-container').classList.add('hidden');
-                document.getElementById('trip-selection-container').classList.add('hidden');
             }
         }
 
         document.getElementById('btn-logout').onclick = async () => {
             await supabaseClient.auth.signOut();
             localStorage.removeItem('active_trip_id');
-            currentTripId = null;
             window.location.reload();
         };
 
         document.getElementById('btn-change-trip').onclick = () => {
             localStorage.removeItem('active_trip_id');
-            currentTripId = null;
             window.location.reload();
         };
 
@@ -158,17 +150,15 @@
             checkUserSession();
         };
 
-        // --- 3. FETCH & RENDER ---
         async function fetchExpenses(token) {
             try {
                 const response = await fetch(`${API_URL}/${currentTripId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                console.log("Expenses received from server:", data);
-                if (Array.isArray(data)) {
-                    renderUI(data, token);
-                }
+                console.log("DEBUG: Expenses received:");
+                console.table(data);
+                if (Array.isArray(data)) renderUI(data, token);
             } catch (err) { console.error("Fetch Error:", err); }
         }
 
@@ -177,34 +167,28 @@
             const totalDisplay = document.getElementById('total-cost');
             const summaryDiv = document.getElementById('category-summary');
             tableBody.innerHTML = ''; summaryDiv.innerHTML = '';
-            let grandTotal = 0; const catTotals = {};
+            let total = 0; const catTotals = {};
 
             expenses.forEach(exp => {
-                // FORCE CONVERSION TO NUMBERS (Safety check)
                 const amt = parseFloat(exp.amount) || 0;
                 const splits = parseInt(exp.split_count) || 1;
-                
-                grandTotal += amt;
+                total += amt;
                 catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
                 const perPerson = amt / splits;
 
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr class="group hover:bg-slate-50 transition">
-                        <td class="p-5">
-                            <div class="font-bold text-slate-800">${exp.item_name}</div>
-                            <div class="text-[10px] text-slate-400 font-bold uppercase italic text-xs tracking-tighter">Paid By ${exp.paid_by || 'Unknown'}</div>
-                        </td>
+                        <td class="p-5"><div class="font-bold text-slate-800 text-base">${exp.item_name}</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">By ${exp.paid_by}</div></td>
                         <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span></td>
                         <td class="p-5 text-right font-black text-slate-700">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button></td>
+                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 scale-125 px-2 transition">🗑️</button></td>
                     </tr>`);
             });
-            totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
+            totalDisplay.innerText = `$${total.toFixed(2)}`;
             updateChart(catTotals);
-
             for (const [cat, sum] of Object.entries(catTotals)) {
-                summaryDiv.innerHTML += `<div class="bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span></div>`;
+                summaryDiv.innerHTML += `<div class="bg-white border rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span></div>`;
             }
         }
 
@@ -215,20 +199,17 @@
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(catTotals),
-                    datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0, hoverOffset: 15 }]
+                    datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0 }]
                 },
                 options: { plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } } } }, cutout: '75%' }
             });
         }
 
-        // --- 4. DATA ACTIONS ---
         document.getElementById('expense-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Syncing...";
-            
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
             const payload = {
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
@@ -237,45 +218,31 @@
                 split_count: parseInt(document.getElementById('split_count').value),
                 trip_id: currentTripId 
             };
-
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                 body: JSON.stringify(payload)
             });
-
-            if (response.ok) {
-                e.target.reset();
-                fetchExpenses(session.access_token);
-            } else {
-                alert("Error saving expense. Check if trip_id column exists in Supabase.");
-            }
-            btn.disabled = false; btn.innerText = "Add to Trip";
+            e.target.reset(); btn.disabled = false; btn.innerText = "Add to Trip";
+            fetchExpenses(session.access_token);
         };
 
         async function deleteExp(id, token) {
-            if (!confirm("Remove shared expense?")) return;
+            if (!confirm("Remove expense?")) return;
             await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             fetchExpenses(token);
         }
 
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
-            const { error } = await supabaseClient.auth.signInWithPassword({ 
-                email: document.getElementById('email').value, 
-                password: document.getElementById('password').value 
-            });
-            if (error) alert(error.message);
-            else checkUserSession();
+            await supabaseClient.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
+            checkUserSession();
         };
 
         document.getElementById('btn-signup').onclick = async () => {
-            const { error } = await supabaseClient.auth.signUp({ 
-                email: document.getElementById('email').value, 
-                password: document.getElementById('password').value 
-            });
+            const { error } = await supabaseClient.auth.signUp({ email: document.getElementById('email').value, password: document.getElementById('password').value });
             if (error) alert(error.message);
-            else alert("Account created! You can now log in.");
+            else alert("Account created!");
         };
 
         checkUserSession();
