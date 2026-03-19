@@ -28,232 +28,124 @@
             height: 100vh; overflow: hidden; margin: 0;
         }
 
-        /* ── Shared: screen base ─────────────────────── */
-        .screen {
-            position: fixed; inset: 0;
-            display: flex; flex-direction: column;
-            transition: opacity 0.2s, transform 0.2s;
-        }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; transition: opacity 0.2s, transform 0.2s; }
         .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
 
-        /* ── Auth ────────────────────────────────────── */
+        /* Auth */
         #auth-screen { align-items: center; justify-content: center; background: var(--bg); z-index: 50; }
-        .auth-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 20px; padding: 36px 32px; width: 360px;
-            animation: slideUp 0.35s ease-out both;
-        }
+        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 360px; animation: slideUp 0.35s ease-out both; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
-        .auth-card p  { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
-        .auth-input {
-            display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px;
-            border: 1px solid var(--border); border-radius: 10px;
-            font-family: inherit; font-size: 13px; background: #f9fafb;
-            outline: none; transition: border-color 0.15s;
-        }
-        .auth-input:focus { border-color: var(--color-lodging); }
-        .auth-btn {
-            width: 100%; padding: 10px; background: var(--color-lodging); color: #fff;
-            border: none; border-radius: 10px; font-family: inherit;
-            font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
-            text-transform: uppercase; cursor: pointer; transition: background 0.15s;
-        }
-        .auth-btn:hover { background: #4f46e5; }
-        #auth-toggle { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--muted); cursor: pointer; }
-        #auth-toggle span { color: var(--color-lodging); text-decoration: underline; }
-        #auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; min-height: 16px; }
+        .auth-input { display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 13px; background: #f9fafb; outline: none; }
+        .auth-btn { width: 100%; padding: 10px; background: var(--color-lodging); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
 
-        /* ── Groups Home ─────────────────────────────── */
+        /* Groups Home */
         #groups-screen { background: var(--bg); padding: 0; z-index: 40; overflow-y: auto; }
         .groups-inner { max-width: 560px; margin: 0 auto; padding: 48px 24px 40px; }
-        .groups-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
         .brand { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; font-style: italic; }
-        .ghost-btn { font-size: 11px; font-weight: 500; color: var(--subtle); background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.15s; }
-        .ghost-btn:hover { color: #ef4444; }
-        .groups-section-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 10px; }
-
-        .group-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 14px; padding: 16px 18px;
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 8px; cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
+        .group-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
         .group-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.08); }
-        .group-card-left { display: flex; flex-direction: column; gap: 3px; }
-        .group-card-name { font-size: 14px; font-weight: 600; letter-spacing: -0.1px; }
-        .group-card-meta { font-size: 11px; color: var(--muted); }
-        .group-actions { display: flex; gap: 4px; }
-        .icon-btn {
-            width: 28px; height: 28px; border-radius: 7px;
-            border: 1px solid var(--border); background: var(--card);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: var(--muted); transition: all 0.15s;
-        }
-        .icon-btn:hover.leave, .icon-btn:hover.delete { border-color: #fca5a5; color: #ef4444; background: #fff1f2; }
-        .icon-btn:hover.enter { border-color: #a5b4fc; color: var(--color-lodging); background: #eef2ff; }
-
-        .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; }
-        .action-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-        .action-card h4 { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-        .action-submit { width: 100%; padding: 8px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-family: inherit; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+        .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
+        .action-submit { width: 100%; padding: 8px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
         .action-submit.secondary { background: #eef2ff; color: var(--color-lodging); }
 
-        /* ── Dashboard Layout ── */
+        /* Dashboard Grid */
         #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-shrink: 0; }
-        .topbar-left { display: flex; align-items: center; gap: 10px; }
-        .back-btn { font-size: 11px; font-weight: 500; color: var(--muted); background: none; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-        .back-btn:hover { border-color: #a5b4fc; color: var(--color-lodging); }
-        .trip-badge { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; background: #eef2ff; color: var(--color-lodging); padding: 3px 8px; border-radius: 6px; }
-        .total-pill { background: var(--text); color: #fff; padding: 8px 18px; border-radius: 14px; display: flex; flex-direction: column; align-items: flex-end; }
-        .total-pill .amount { font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
-        .total-pill .label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
-
         .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; }
-
-        /* Sidebar Scrolling Logic: Natural flow unless overflow happens */
         .sidebar { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
-
-        .chart-card { 
-            padding: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 0; /* Critical for dynamic scrolling */
-            flex-shrink: 1; 
-            flex-grow: 1;
-        }
+        .chart-card { padding: 16px; display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
         .chart-wrap { height: 130px; display: flex; justify-content: center; flex-shrink: 0; }
-        .section-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 8px; }
-
-        /* Balance Sheet: Flex and Scroll only if needed */
-        .balance-list { 
-            display: flex; flex-direction: column; gap: 5px; 
-            overflow-y: auto; 
-            flex-grow: 1;
-        }
-        .balance-list::-webkit-scrollbar { width: 3px; }
-        .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
+        .balance-list { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; flex-grow: 1; }
         .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
         .balance-card.owed { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
         .balance-card.owes { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
         .balance-card.even { background: #f8fafc; border: 1px solid var(--border); color: var(--muted); }
-        .balance-card .bname { font-weight: 600; }
-        .balance-card .bval  { font-family: 'DM Mono', monospace; font-size: 11px; }
 
         .form-card { padding: 14px; flex-shrink: 0; margin-top: auto; }
-        .form-card h3 { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-        .form-field { display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px; background: #f9fafb; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 12px; outline: none; transition: border-color 0.15s; }
-        .form-field:focus { border-color: var(--color-lodging); }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .submit-btn { width: 100%; padding: 9px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-family: inherit; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+        .form-field { display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px; background: #f9fafb; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 12px; outline: none; }
+        .submit-btn { width: 100%; padding: 9px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
 
-        /* Right column */
+        /* Table */
         .right-col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-        .cat-pills { display: flex; flex-wrap: wrap; gap: 7px; flex-shrink: 0; }
-        .cat-pill { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 10px; font-weight: 500; color: var(--muted); white-space: nowrap; }
-        .cat-amt { font-family: 'DM Mono', monospace; }
         .table-card { flex-grow: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
         .table-inner { overflow-y: auto; flex-grow: 1; }
-        .table-inner::-webkit-scrollbar { width: 4px; }
-        .table-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
         table { width: 100%; border-collapse: collapse; }
-        thead th { padding: 10px 16px; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); text-align: left; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); }
-        tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-        .exp-name { font-size: 13px; font-weight: 500; }
-        .exp-paidby { font-size: 10px; color: var(--subtle); }
-        .cat-tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 9px; font-weight: 600; text-transform: uppercase; }
-        .tag-Lodging { background: #eef2ff; color: #4f46e5; }
-        .tag-Food { background: #fff1f2; color: #e11d48; }
-        .tag-Transport { background: #f0fdf4; color: #059669; }
-        .tag-Activity { background: #fffbeb; color: #d97706; }
-        .exp-amount { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; text-align: right; }
-        .delete-btn { background: none; border: none; cursor: pointer; color: #d1d5db; padding: 4px 6px; border-radius: 6px; transition: all 0.15s; }
-        .delete-btn:hover { color: #ef4444; background: #fff1f2; }
+        thead th { padding: 10px 16px; font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--subtle); text-align: left; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); }
+        tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; }
 
-        /* Profile screens */
-        #profile-screen, #profile-modal { background: var(--bg); display: flex; align-items: center; justify-content: center; }
-        .profile-card, .profile-modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 360px; animation: slideUp 0.35s ease-out both; }
-        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff; margin: 0 auto 20px; background: var(--color-lodging); }
+        /* Profile Restored Functionality */
+        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff; margin: 0 auto 20px; background: var(--color-lodging); transition: background 0.2s; }
         .color-swatches { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
-        .swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .swatch.active { border-color: var(--text); transform: scale(1.1); }
-        .profile-btn { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; border: none; cursor: pointer; flex-shrink: 0; background: var(--color-lodging); }
-        .member-strip { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .member-chip { display: flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px 3px 4px; font-size: 11px; font-weight: 500; }
-        .member-chip.you { border-color: #a5b4fc; background: #eef2ff; color: var(--color-lodging); }
-        .member-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+        .swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+        .swatch.active { border-color: var(--text); transform: scale(1.15); }
+        .profile-btn { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; border: none; cursor: pointer; background: var(--color-lodging); }
+        
+        #profile-modal { position: fixed; inset: 0; z-index: 160; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
+        #profile-modal.hidden { display: none; }
+        .profile-modal-card { background: var(--card); border-radius: 20px; padding: 36px 32px; width: 360px; animation: slideUp 0.2s ease-out both; }
 
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; }
         #toast.show { opacity: 1; }
-        #confirm-modal { position: fixed; inset: 0; z-index: 150; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
-        #confirm-modal.hidden { display: none; }
-        .confirm-card { background: var(--card); border-radius: 16px; padding: 28px 26px; width: 320px; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen" class="screen">
     <div class="auth-card">
-        <h2 id="auth-title">Welcome back</h2>
-        <p id="auth-subtitle">Sign in to access your trips</p>
+        <h2 class="text-xl font-semibold mb-1">Welcome back</h2>
+        <p class="text-sm text-gray-500 mb-6">Sign in to access your trips</p>
         <input class="auth-input" type="email" id="auth-email" placeholder="Email address">
         <input class="auth-input" type="password" id="auth-password" placeholder="Password">
         <button class="auth-btn" id="auth-submit">Sign In</button>
-        <div id="auth-error" style="color:#ef4444;font-size:12px;margin-top:8px;"></div>
-        <span id="auth-toggle" style="margin-top:14px;display:block;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;">No account? <span id="auth-toggle-link" style="color:var(--color-lodging);text-decoration:underline;">Create one</span></span>
+        <div id="auth-error" class="text-xs text-red-500 mt-2"></div>
+        <span id="auth-toggle" class="block text-center text-xs mt-4 text-gray-500 cursor-pointer">No account? <span class="text-indigo-600 underline">Create one</span></span>
     </div>
 </div>
 
 <div id="profile-screen" class="screen hidden">
-    <div class="profile-card">
+    <div class="auth-card">
         <div class="avatar-preview" id="setup-avatar-preview">?</div>
-        <h2 style="font-size:20px;font-weight:600;margin-bottom:4px;text-align:center;">What's your name?</h2>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:20px;text-align:center;">This is how other trip members will see you.</p>
+        <h2 class="text-lg font-semibold mb-1 text-center">What's your name?</h2>
+        <p class="text-sm text-gray-500 mb-5 text-center">How trip members will see you.</p>
         <div class="color-swatches" id="setup-color-swatches"></div>
-        <input class="auth-input" type="text" id="setup-display-name" placeholder="Display name" maxlength="32">
+        <input class="auth-input" type="text" id="setup-display-name" placeholder="Display name">
         <button class="auth-btn" id="btn-save-profile">Save & Continue</button>
     </div>
 </div>
 
-<div id="profile-modal" class="hidden" style="position:fixed;inset:0;z-index:160;background:rgba(0,0,0,0.35);">
+<div id="profile-modal" class="hidden">
     <div class="profile-modal-card">
-        <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;">Edit Profile</h3>
+        <h3 class="text-base font-semibold mb-4">Edit Profile</h3>
         <div class="avatar-preview" id="edit-avatar-preview">?</div>
         <div class="color-swatches" id="edit-color-swatches"></div>
         <input class="auth-input" type="text" id="edit-display-name" placeholder="Display name">
-        <div style="display:flex;gap:8px;">
-            <button class="auth-btn" style="background:#f3f4f6;color:var(--muted);flex:1;" id="btn-profile-cancel">Cancel</button>
-            <button class="auth-btn" id="btn-save-profile-edit" style="flex:1;">Save</button>
+        <div class="flex gap-2">
+            <button class="auth-btn bg-gray-100 !text-gray-500 flex-1" id="btn-profile-cancel">Cancel</button>
+            <button class="auth-btn flex-1" id="btn-save-profile-edit">Save</button>
         </div>
     </div>
 </div>
 
 <div id="groups-screen" class="screen hidden">
     <div class="groups-inner">
-        <div class="groups-header">
+        <div class="flex justify-between items-center mb-8">
             <span class="brand">RoamBudget</span>
-            <div style="display:flex;align-items:center;gap:10px;">
+            <div class="flex items-center gap-3">
                 <button class="profile-btn" id="btn-open-profile">?</button>
-                <button class="ghost-btn" id="btn-logout">Sign Out</button>
+                <button class="text-[11px] text-gray-400 font-medium" id="btn-logout">Sign Out</button>
             </div>
         </div>
-        <div class="groups-section-label">Your Trips</div>
+        <div class="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-3">Your Trips</div>
         <div id="groups-list"></div>
-        <div class="action-cards">
-            <div class="action-card">
-                <h4>Create Trip</h4>
-                <input class="auth-input" id="new-trip-code" placeholder="Trip code" style="font-size:12px;">
-                <input class="auth-input" id="new-trip-name" placeholder="Friendly name" style="font-size:12px;">
+        <div class="grid grid-cols-2 gap-3 mt-8">
+            <div class="bg-white border p-4 rounded-xl">
+                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Create Trip</h4>
+                <input class="auth-input text-xs" id="new-trip-code" placeholder="Trip code">
+                <input class="auth-input text-xs" id="new-trip-name" placeholder="Friendly name">
                 <button class="action-submit" id="btn-create-trip">Create</button>
             </div>
-            <div class="action-card">
-                <h4>Join Trip</h4>
-                <input class="auth-input" id="join-trip-code" placeholder="Enter code" style="font-size:12px;">
+            <div class="bg-white border p-4 rounded-xl">
+                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Join Trip</h4>
+                <input class="auth-input text-xs" id="join-trip-code" placeholder="Enter code">
                 <button class="action-submit secondary" id="btn-join-trip">Join</button>
             </div>
         </div>
@@ -261,15 +153,14 @@
 </div>
 
 <div id="app-screen" class="screen hidden">
-    <div class="topbar">
-        <div class="topbar-left">
-            <button class="back-btn" id="btn-back">← My Trips</button>
-            <span class="trip-badge" id="display-trip-id">—</span>
-            <button class="ghost-btn" id="btn-logout-dash">Sign Out</button>
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <button class="text-xs border px-3 py-1 rounded-lg text-gray-500" id="btn-back">← My Trips</button>
+            <span class="font-mono text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded" id="display-trip-id">—</span>
         </div>
-        <div class="total-pill">
-            <span class="label">Trip Total</span>
-            <span class="amount" id="total-cost">$0.00</span>
+        <div class="bg-gray-900 text-white px-4 py-2 rounded-xl text-right">
+            <div class="text-[9px] opacity-50 uppercase font-bold">Trip Total</div>
+            <div class="text-2xl font-semibold tracking-tighter" id="total-cost">$0.00</div>
         </div>
     </div>
 
@@ -277,15 +168,14 @@
         <div class="sidebar">
             <div class="card chart-card">
                 <div class="chart-wrap"><canvas id="budgetChart"></canvas></div>
-                <div class="section-label" style="margin-top:14px;">Balance Sheet</div>
+                <div class="text-[9px] font-bold uppercase text-gray-400 mt-4 mb-2">Balance Sheet</div>
                 <div class="balance-list" id="settle-up-list"></div>
             </div>
-
             <div class="card form-card">
-                <h3>Post New Expense</h3>
+                <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Post New Expense</h3>
                 <form id="expense-form">
                     <input class="form-field" type="text" id="item_name" placeholder="Item name" required>
-                    <div class="form-grid">
+                    <div class="grid grid-cols-2 gap-2">
                         <input class="form-field" type="number" id="amount" step="0.01" placeholder="$ Price" required>
                         <select class="form-field" id="category">
                             <option value="Lodging">🏨 Lodging</option>
@@ -302,37 +192,19 @@
         </div>
 
         <div class="right-col">
-            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-                <span class="section-label" style="margin-bottom:0;">Members</span>
-                <div class="member-strip" id="member-strip"></div>
+            <div class="flex items-center gap-3">
+                <span class="text-[9px] font-bold uppercase text-gray-400">Members</span>
+                <div id="member-strip" class="flex gap-2"></div>
             </div>
-            <div class="cat-pills" id="category-summary"></div>
+            <div id="category-summary" class="flex flex-wrap gap-2"></div>
             <div class="card table-card">
                 <div class="table-inner">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Expense</th>
-                                <th>Category</th>
-                                <th style="text-align:right;">Amount</th>
-                                <th style="text-align:right; width:40px;"></th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Expense</th><th>Category</th><th class="text-right">Amount</th><th class="w-10"></th></tr></thead>
                         <tbody id="expense-table-body"></tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div id="confirm-modal" class="hidden">
-    <div class="confirm-card">
-        <h3 id="confirm-title">Are you sure?</h3>
-        <p id="confirm-body" style="font-size:12px;color:var(--muted);margin-bottom:20px;">This cannot be undone.</p>
-        <div style="display:flex;gap:8px;">
-            <button class="auth-btn" style="background:#f3f4f6;color:var(--muted);flex:1;" id="confirm-cancel">Cancel</button>
-            <button class="auth-btn" style="background:#ef4444;flex:1;" id="confirm-ok">Confirm</button>
         </div>
     </div>
 </div>
@@ -343,18 +215,15 @@
 const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
 const API_URL = "https://roambudget-server.onrender.com/expenses";
-const TRIPS_API = "https://roambudget-server.onrender.com/trips";
-
 const AVATAR_COLORS = ["#6366f1","#f43f5e","#10b981","#f59e0b","#3b82f6","#8b5cf6","#ec4899","#14b8a6"];
 const CAT_COLORS = { Lodging: "#6366f1", Food: "#f43f5e", Transport: "#10b981", Activity: "#f59e0b" };
-let currentDisplayName = "", currentAvatarColor = AVATAR_COLORS[0], currentSession = null, currentTripId = null, myChart = null, isSignUp = false, confirmCallback = null;
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
+let currentDisplayName = "", currentAvatarColor = AVATAR_COLORS[0], currentSession = null, currentTripId = null, myChart = null, isSignUp = false;
 
-function showScreen(id) { ["auth-screen","profile-screen","groups-screen","app-screen"].forEach(s => document.getElementById(s).classList.toggle("hidden", s !== id)); }
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500); }
-function esc(str) { return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-function getInitials(n) { return n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) || "?"; }
+function getInitials(n) { return n ? n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) : "?"; }
 
 async function init() {
     const { data: { session } } = await sb.auth.getSession();
@@ -369,31 +238,21 @@ async function init() {
     } else showScreen("auth-screen");
 }
 
-document.getElementById("auth-submit").onclick = async () => {
-    const email = document.getElementById("auth-email").value, pass = document.getElementById("auth-password").value;
-    const { data, error } = isSignUp ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) return document.getElementById("auth-error").textContent = error.message;
-    if (isSignUp) return toast("Check your email!");
-    init();
-};
-
-document.getElementById("auth-toggle").onclick = () => {
-    isSignUp = !isSignUp;
-    document.getElementById("auth-title").textContent = isSignUp ? "Create account" : "Welcome back";
-    document.getElementById("auth-submit").textContent = isSignUp ? "Sign Up" : "Sign In";
-};
-
 function initSwatches(ctx) {
     const container = document.getElementById(`${ctx}-color-swatches`), preview = document.getElementById(`${ctx}-avatar-preview`);
     container.innerHTML = "";
     AVATAR_COLORS.forEach(c => {
-        const s = document.createElement("div"); s.className = "swatch" + (c === currentAvatarColor ? " active" : ""); s.style.background = c;
+        const s = document.createElement("div"); 
+        s.className = "swatch" + (c === currentAvatarColor ? " active" : ""); 
+        s.style.background = c;
         s.onclick = () => { currentAvatarColor = c; container.querySelectorAll(".swatch").forEach(x => x.classList.remove("active")); s.classList.add("active"); preview.style.background = c; };
         container.appendChild(s);
     });
+    const input = document.getElementById(`${ctx}-display-name`);
+    input.oninput = () => { preview.textContent = getInitials(input.value); };
 }
 
-async function saveProfile(name, color, ctx) {
+async function saveProfile(name, color) {
     if (!name) return toast("Enter a name");
     const { error } = await sb.auth.updateUser({ data: { display_name: name, avatar_color: color } });
     if (error) return toast(error.message);
@@ -407,23 +266,31 @@ async function saveProfile(name, color, ctx) {
     return true;
 }
 
-document.getElementById("btn-save-profile").onclick = async () => { if (await saveProfile(document.getElementById("setup-display-name").value, currentAvatarColor, "setup")) { showScreen("groups-screen"); loadGroups(); } };
-document.getElementById("btn-open-profile").onclick = () => { document.getElementById("edit-display-name").value = currentDisplayName; initSwatches("edit"); document.getElementById("profile-modal").classList.remove("hidden"); };
-document.getElementById("btn-profile-cancel").onclick = () => document.getElementById("profile-modal").classList.add("hidden");
-document.getElementById("btn-save-profile-edit").onclick = async () => { if (await saveProfile(document.getElementById("edit-display-name").value, currentAvatarColor, "edit")) { document.getElementById("profile-modal").classList.add("hidden"); toast("Updated!"); } };
+function updateUIProfile() { 
+    const b = document.getElementById("btn-open-profile"); 
+    b.textContent = getInitials(currentDisplayName); 
+    b.style.background = currentAvatarColor; 
+}
 
-function updateUIProfile() { const b = document.getElementById("btn-open-profile"); b.textContent = getInitials(currentDisplayName); b.style.background = currentAvatarColor; }
+document.getElementById("btn-save-profile").onclick = async () => { if (await saveProfile(document.getElementById("setup-display-name").value, currentAvatarColor)) { showScreen("groups-screen"); loadGroups(); } };
+document.getElementById("btn-open-profile").onclick = () => { 
+    document.getElementById("edit-display-name").value = currentDisplayName; 
+    document.getElementById("edit-avatar-preview").textContent = getInitials(currentDisplayName);
+    document.getElementById("edit-avatar-preview").style.background = currentAvatarColor;
+    initSwatches("edit"); 
+    document.getElementById("profile-modal").classList.remove("hidden"); 
+};
+document.getElementById("btn-profile-cancel").onclick = () => document.getElementById("profile-modal").classList.add("hidden");
+document.getElementById("btn-save-profile-edit").onclick = async () => { if (await saveProfile(document.getElementById("edit-display-name").value, currentAvatarColor)) { document.getElementById("profile-modal").classList.add("hidden"); toast("Updated!"); } };
 
 async function loadGroups() {
     const { data } = await sb.from("trip_members").select("trip_id, trips(id, trip_code, name, creator_id)").eq("user_id", currentSession.user.id);
     const list = document.getElementById("groups-list"); list.innerHTML = "";
-    if (!data?.length) return list.innerHTML = "<div style='text-align:center;padding:20px;color:var(--subtle);font-size:13px;'>No trips yet.</div>";
-    for (const r of data) {
-        const t = r.trips, isCreator = t.creator_id === currentSession.user.id;
-        const { data: exps } = await sb.from("trip_expenses").select("amount").eq("trip_id", t.trip_code);
-        const total = (exps || []).reduce((s, e) => s + parseFloat(e.amount), 0);
-        list.insertAdjacentHTML("beforeend", `<div class="group-card"><div class="group-card-left" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')"><div class="group-card-name">${t.name||t.trip_code}</div><div class="group-card-meta">${t.trip_code} · ${exps?.length||0} exp · $${total.toFixed(2)}</div></div><div class="group-actions"><button class="icon-btn enter" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')">→</button>${isCreator?`<button class="icon-btn delete" onclick="deleteT('${t.trip_code}')">🗑</button>`:`<button class="icon-btn leave" onclick="leaveT('${t.trip_code}')">✕</button>`}</div></div>`);
-    }
+    if (!data?.length) return list.innerHTML = "<div class='text-center p-5 text-gray-400 text-xs'>No trips yet.</div>";
+    data.forEach(r => {
+        const t = r.trips;
+        list.insertAdjacentHTML("beforeend", `<div class="group-card" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')"><div><div class="font-semibold text-sm">${t.name||t.trip_code}</div><div class="text-[10px] text-gray-400">${t.trip_code}</div></div><button class="icon-btn">→</button></div>`);
+    });
 }
 
 document.getElementById("btn-create-trip").onclick = async () => {
@@ -451,8 +318,7 @@ async function loadMemberStrip() {
     const { data: members } = await sb.from("trip_members").select("user_id, display_name, avatar_color").eq("trip_id", trip.id);
     s.innerHTML = "";
     members.forEach(m => {
-        const isYou = m.user_id === currentSession.user.id;
-        s.insertAdjacentHTML("beforeend", `<div class="member-chip ${isYou?'you':''}"><div class="member-avatar" style="background:${m.avatar_color}">${getInitials(m.display_name)}</div>${m.display_name}</div>`);
+        s.insertAdjacentHTML("beforeend", `<div class="flex items-center gap-1.5 bg-white border rounded-full px-2 py-1 text-[10px] font-medium"><div class="w-4 h-4 rounded-full flex items-center justify-center text-[7px] text-white font-bold" style="background:${m.avatar_color}">${getInitials(m.display_name)}</div>${m.display_name}</div>`);
     });
 }
 
@@ -464,21 +330,19 @@ async function fetchEx() {
 function renderUI(exps) {
     const table = document.getElementById("expense-table-body"), settle = document.getElementById("settle-up-list"), sumDiv = document.getElementById("category-summary"), totalEl = document.getElementById("total-cost");
     table.innerHTML = ""; settle.innerHTML = ""; sumDiv.innerHTML = "";
-    if (!exps.length) { table.innerHTML = "<tr><td colspan='4' style='text-align:center;padding:40px;color:var(--subtle);'>No expenses.</td></tr>"; totalEl.textContent = "$0.00"; updateC({}); return; }
     let total = 0, cats = {}, bals = {};
     exps.forEach(e => {
         const a = parseFloat(e.amount), s = parseInt(e.split_count)||1, p = a/s;
         total += a; cats[e.category] = (cats[e.category]||0) + a;
         if (!bals[e.paid_by]) bals[e.paid_by] = { p: 0, o: 0 };
         bals[e.paid_by].p += a; bals[e.paid_by].o += p;
-        table.insertAdjacentHTML("beforeend", `<tr><td><div class="exp-name">${esc(e.item_name)}</div><div class="exp-paidby">Paid by ${esc(e.paid_by)}</div></td><td><span class="cat-tag tag-${e.category}">${e.category}</span></td><td class="exp-amount">$${a.toFixed(2)}<div style="font-size:10px;color:var(--color-lodging);">$${p.toFixed(2)}/pers</div></td><td style="text-align:right;"><button class="delete-btn" onclick="delEx(${e.id})">✕</button></td></tr>`);
+        table.insertAdjacentHTML("beforeend", `<tr><td><div class="text-sm font-medium">${e.item_name}</div><div class="text-[10px] text-gray-400">Paid by ${e.paid_by}</div></td><td><span class="tag-${e.category} px-2 py-0.5 rounded text-[9px] font-bold uppercase" style="background:${CAT_COLORS[e.category]}20; color:${CAT_COLORS[e.category]}">${e.category}</span></td><td class="text-right font-mono text-sm">$${a.toFixed(2)}</td><td class="text-right"><button onclick="delEx(${e.id})" class="text-gray-300 hover:text-red-500">✕</button></td></tr>`);
     });
     totalEl.textContent = `$${total.toFixed(2)}`;
-    Object.entries(cats).forEach(([c, s]) => sumDiv.insertAdjacentHTML("beforeend", `<div class="cat-pill"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${CAT_COLORS[c]};margin-right:5px;"></span>${c}: $${s.toFixed(2)}</div>`));
+    Object.entries(cats).forEach(([c, s]) => sumDiv.insertAdjacentHTML("beforeend", `<div class="bg-white border px-3 py-1 rounded-full text-[10px] font-medium"><span class="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style="background:${CAT_COLORS[c]}"></span>${c}: $${s.toFixed(2)}</div>`));
     Object.entries(bals).forEach(([n, b]) => {
         const net = b.p - b.o, abs = Math.abs(net);
-        const cls = abs < 0.01 ? "even" : (net > 0 ? "owed" : "owes");
-        settle.insertAdjacentHTML("beforeend", `<div class="balance-card ${cls}"><div><div class="bname">${esc(n)}</div><div style="font-size:9px;opacity:0.7;">${net>0?'is owed':'owes'}</div></div><span class="bval">${net>0?'+':'-'}$${abs.toFixed(2)}</span></div>`);
+        settle.insertAdjacentHTML("beforeend", `<div class="balance-card ${net>=0?'owed':'owes'}"><div><div class="font-bold">${n}</div><div class="text-[9px] opacity-70">${net>=0?'is owed':'owes'}</div></div><span class="font-mono">$${abs.toFixed(2)}</span></div>`);
     });
     updateC(cats);
 }
@@ -486,7 +350,7 @@ function renderUI(exps) {
 function updateC(cats) {
     const ctx = document.getElementById("budgetChart").getContext("2d"); if (myChart) myChart.destroy();
     const l = Object.keys(cats); if (!l.length) return;
-    myChart = new Chart(ctx, { type: "doughnut", data: { labels: l, datasets: [{ data: Object.values(cats), backgroundColor: l.map(x => CAT_COLORS[x]), borderWidth: 0 }] }, options: { cutout: "78%", plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 9 } } } } } });
+    myChart = new Chart(ctx, { type: "doughnut", data: { labels: l, datasets: [{ data: Object.values(cats), backgroundColor: l.map(x => CAT_COLORS[x]), borderWidth: 0 }] }, options: { cutout: "78%", plugins: { legend: { display: false } } } });
 }
 
 document.getElementById("expense-form").onsubmit = async e => {
@@ -497,6 +361,13 @@ document.getElementById("expense-form").onsubmit = async e => {
 };
 
 async function delEx(id) { await fetch(`${API_URL}/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${currentSession.access_token}` } }); fetchEx(); }
+document.getElementById("auth-submit").onclick = async () => {
+    const email = document.getElementById("auth-email").value, pass = document.getElementById("auth-password").value;
+    const { data, error } = isSignUp ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) return document.getElementById("auth-error").textContent = error.message;
+    init();
+};
+document.getElementById("auth-toggle").onclick = () => { isSignUp = !isSignUp; document.getElementById("auth-title").textContent = isSignUp ? "Create account" : "Welcome back"; document.getElementById("auth-submit").textContent = isSignUp ? "Sign Up" : "Sign In"; };
 document.getElementById("btn-logout").onclick = document.getElementById("btn-logout-dash").onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
 init();
