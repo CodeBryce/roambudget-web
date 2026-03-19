@@ -34,8 +34,7 @@
         </div>
 
         <div id="trip-selection-container" class="hidden auth-card bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md mx-auto mt-20">
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Select a Trip</h2>
-            <p class="text-slate-400 text-sm mb-6 text-center">Enter a code (e.g. JAMAICA2026)</p>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2 text-center">Select a Trip</h2>
             <form id="trip-id-form" class="space-y-4">
                 <input type="text" id="input-trip-id" placeholder="TRIP CODE" required class="w-full p-4 bg-slate-50 border-2 border-dashed rounded-xl outline-none focus:border-indigo-500 text-center font-bold uppercase tracking-widest">
                 <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Enter Trip Dashboard</button>
@@ -55,13 +54,14 @@
                 <div class="bg-indigo-600 text-white p-6 rounded-3xl shadow-2xl text-center min-w-[260px]">
                     <p class="text-xs uppercase tracking-widest font-bold opacity-80">Trip Total</p>
                     <h2 id="total-cost" class="text-5xl font-black mt-1">$0.00</h2>
+                    <p id="api-status" class="text-[10px] mt-2 font-bold opacity-50 uppercase tracking-tighter italic">Connecting...</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Spending Split</h3>
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Spending Split</h3>
                         <canvas id="budgetChart" class="max-h-[220px]"></canvas>
                     </div>
 
@@ -99,13 +99,13 @@
                             <tbody id="expense-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
+                    <button id="btn-refresh" class="w-full py-2 text-slate-400 text-[10px] uppercase font-black tracking-widest hover:text-indigo-600 transition">Manual Sync</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
         const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; 
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
         const API_URL = "https://roambudget-server.onrender.com/expenses"; 
@@ -117,6 +117,7 @@
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
+            
             if (session) {
                 if (currentTripId) {
                     document.getElementById('trip-selection-container').classList.add('hidden');
@@ -142,6 +143,11 @@
             window.location.reload();
         };
 
+        document.getElementById('btn-refresh').onclick = async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) fetchExpenses(session.access_token);
+        };
+
         document.getElementById('trip-id-form').onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('input-trip-id').value.trim().toUpperCase();
@@ -151,15 +157,25 @@
         };
 
         async function fetchExpenses(token) {
+            const status = document.getElementById('api-status');
+            status.innerText = "Syncing Cloud Data...";
             try {
                 const response = await fetch(`${API_URL}/${currentTripId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                console.log("DEBUG: Expenses received:");
-                console.table(data);
-                if (Array.isArray(data)) renderUI(data, token);
-            } catch (err) { console.error("Fetch Error:", err); }
+                console.log("SERVER RESPONSE:", data);
+                
+                if (Array.isArray(data)) {
+                    renderUI(data, token);
+                    status.innerText = `Connected: ${currentTripId}`;
+                } else {
+                    status.innerText = "Error: Database Policy Blocked";
+                }
+            } catch (err) { 
+                console.error("Fetch Error:", err);
+                status.innerText = "Server Offline (Waking Up...)";
+            }
         }
 
         function renderUI(expenses, token) {
@@ -168,6 +184,12 @@
             const summaryDiv = document.getElementById('category-summary');
             tableBody.innerHTML = ''; summaryDiv.innerHTML = '';
             let total = 0; const catTotals = {};
+
+            if (expenses.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium italic">Database is empty for this Trip ID.</td></tr>`;
+                totalDisplay.innerText = "$0.00";
+                return;
+            }
 
             expenses.forEach(exp => {
                 const amt = parseFloat(exp.amount) || 0;
@@ -178,11 +200,11 @@
 
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr class="group hover:bg-slate-50 transition">
-                        <td class="p-5"><div class="font-bold text-slate-800 text-base">${exp.item_name}</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">By ${exp.paid_by}</div></td>
-                        <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span></td>
+                        <td class="p-5"><div class="font-bold text-slate-800">${exp.item_name}</div><div class="text-[10px] text-slate-400 font-bold">Paid By ${exp.paid_by}</div></td>
+                        <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase">${exp.category}</span></td>
                         <td class="p-5 text-right font-black text-slate-700">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 scale-125 px-2 transition">🗑️</button></td>
+                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 scale-125 px-2">🗑️</button></td>
                     </tr>`);
             });
             totalDisplay.innerText = `$${total.toFixed(2)}`;
@@ -201,7 +223,7 @@
                     labels: Object.keys(catTotals),
                     datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0 }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } } } }, cutout: '75%' }
+                options: { plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 10 } } } }, cutout: '75%' }
             });
         }
 
@@ -228,7 +250,7 @@
         };
 
         async function deleteExp(id, token) {
-            if (!confirm("Remove expense?")) return;
+            if (!confirm("Remove?")) return;
             await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             fetchExpenses(token);
         }
@@ -237,12 +259,6 @@
             e.preventDefault();
             await supabaseClient.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
             checkUserSession();
-        };
-
-        document.getElementById('btn-signup').onclick = async () => {
-            const { error } = await supabaseClient.auth.signUp({ email: document.getElementById('email').value, password: document.getElementById('password').value });
-            if (error) alert(error.message);
-            else alert("Account created!");
         };
 
         checkUserSession();
