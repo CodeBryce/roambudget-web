@@ -592,7 +592,7 @@
 //  CONFIG  —  replace with your real values
 // ══════════════════════════════════════════════════════════════════
 const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";   // ← replace
+const SB_KEY  = "YOUR_SUPABASE_ANON_KEY";   // ← replace
 const API_URL = "https://roambudget-server.onrender.com/expenses";
 const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
@@ -785,6 +785,8 @@ async function saveProfile(name, color, errorElId) {
     const { data } = await sb.auth.getSession();
     if (data.session) currentSession = data.session;
     updateProfileButtons();
+    // Keep trip_members row in sync so the strip shows the new name live
+    refreshCurrentUserInStrip();
     return true;
 }
 
@@ -901,10 +903,15 @@ document.getElementById("btn-create-trip").onclick = async () => {
 
     if (tripErr) { toast("⚠️ " + tripErr.message); return; }
 
-    // 2. Add creator to trip_members
+    // 2. Add creator to trip_members (with their profile info)
     const { error: memErr } = await sb
         .from("trip_members")
-        .insert({ trip_id: tripRow.id, user_id: currentSession.user.id });
+        .insert({
+            trip_id:      tripRow.id,
+            user_id:      currentSession.user.id,
+            display_name: currentDisplayName || null,
+            avatar_color: currentAvatarColor || null,
+        });
 
     if (memErr) { toast("⚠️ " + memErr.message); return; }
 
@@ -928,10 +935,15 @@ document.getElementById("btn-join-trip").onclick = async () => {
 
     if (lookupErr || !tripRow) { toast("⚠️ Trip not found. Check the code."); return; }
 
-    // Add to trip_members (ignore duplicate error)
+    // Add to trip_members with profile info (ignore duplicate error)
     const { error: memErr } = await sb
         .from("trip_members")
-        .insert({ trip_id: tripRow.id, user_id: currentSession.user.id });
+        .insert({
+            trip_id:      tripRow.id,
+            user_id:      currentSession.user.id,
+            display_name: currentDisplayName || null,
+            avatar_color: currentAvatarColor || null,
+        });
 
     if (memErr && !memErr.message.includes("duplicate")) {
         toast("⚠️ " + memErr.message); return;
@@ -1012,63 +1024,55 @@ document.getElementById("btn-back").onclick = () => {
 
 // ══════════════════════════════════════════════════════════════════
 //  MEMBER STRIP
+//  Reads display_name + avatar_color directly from trip_members.
+//  No backend call needed — client-side Supabase query only.
 // ══════════════════════════════════════════════════════════════════
 async function loadMemberStrip() {
     const strip = document.getElementById("member-strip");
     strip.innerHTML = `<span style="font-size:11px;color:var(--subtle);">Loading…</span>`;
 
-    // 1. Get the trip uuid from trip_code
-    const { data: tripRow } = await sb
+    // 1. Resolve trip_code → trips.id
+    const { data: tripRow, error: tripErr } = await sb
         .from("trips")
         .select("id")
         .eq("trip_code", currentTripId)
         .single();
 
-    if (!tripRow) { strip.innerHTML = ""; return; }
+    if (tripErr || !tripRow) { strip.innerHTML = ""; return; }
 
-    // 2. Get all members for this trip
-    const { data: members, error } = await sb
+    // 2. Query trip_members with display_name + avatar_color columns
+    const { data: members, error: memErr } = await sb
         .from("trip_members")
-        .select("user_id")
+        .select("user_id, display_name, avatar_color")
         .eq("trip_id", tripRow.id);
 
-    if (error || !members?.length) { strip.innerHTML = ""; return; }
+    if (memErr || !members?.length) { strip.innerHTML = ""; return; }
 
-    // 3. Fetch each user's display_name from user_metadata via admin RPC
-    //    Since we can't read auth.users directly from the client, we use
-    //    a workaround: store display_name in a public profiles view or
-    //    fetch via the Supabase admin API. Instead, we use the stored
-    //    metadata we already have for the current user, and fall back to
-    //    the user_id initials for others until they log in.
-    //
-    //    The cleanest client-side approach: call our own /members/{trip_id}
-    //    endpoint that returns display names (added to main.py below).
-    //    For now, we fetch from the backend.
-    try {
-        const { data: { session } } = await sb.auth.getSession();
-        const res = await fetch(
-            `https://roambudget-server.onrender.com/members/${currentTripId}`,
-            { headers: { "Authorization": `Bearer ${session.access_token}` } }
-        );
-        if (!res.ok) throw new Error("members fetch failed");
-        const memberData = await res.json();
+    strip.innerHTML = "";
+    members.forEach(m => {
+        const isYou    = m.user_id === currentSession.user.id;
+        const name     = m.display_name || "Member";
+        const color    = m.avatar_color || AVATAR_COLORS[0];
+        const initials = getInitials(name);
+        strip.insertAdjacentHTML("beforeend", `
+            <div class="member-chip${isYou ? " you" : ""}" title="${escHtml(name)}${isYou ? " (you)" : ""}">
+                <div class="member-avatar" style="background:${color};">${escHtml(initials)}</div>
+                ${escHtml(isYou ? name + " (you)" : name)}
+            </div>`);
+    });
+}
 
-        strip.innerHTML = "";
-        memberData.forEach(m => {
-            const isYou  = m.user_id === currentSession.user.id;
-            const name   = m.display_name || "Unknown";
-            const color  = m.avatar_color || AVATAR_COLORS[0];
-            const initials = getInitials(name);
-            strip.insertAdjacentHTML("beforeend", `
-                <div class="member-chip${isYou ? " you" : ""}" title="${escHtml(name)}${isYou ? " (you)" : ""}">
-                    <div class="member-avatar" style="background:${color};">${escHtml(initials)}</div>
-                    ${escHtml(isYou ? name + " (you)" : name)}
-                </div>`);
-        });
-    } catch {
-        // Fallback: just show count
-        strip.innerHTML = `<span style="font-size:11px;color:var(--subtle);">${members.length} member${members.length !== 1 ? "s" : ""}</span>`;
-    }
+// Called after saveProfile so the strip stays in sync if the user edits their name
+async function refreshCurrentUserInStrip() {
+    if (!currentTripId) return;
+    const { data: tripRow } = await sb
+        .from("trips").select("id").eq("trip_code", currentTripId).single();
+    if (!tripRow) return;
+    await sb.from("trip_members")
+        .update({ display_name: currentDisplayName, avatar_color: currentAvatarColor })
+        .eq("trip_id", tripRow.id)
+        .eq("user_id", currentSession.user.id);
+    loadMemberStrip();
 }
 
 // ══════════════════════════════════════════════════════════════════
