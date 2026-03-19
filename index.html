@@ -44,34 +44,43 @@
         .group-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.08); }
         .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
         .action-submit { width: 100%; padding: 8px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
+        .action-submit.secondary { background: #eef2ff; color: var(--color-lodging); }
 
-        #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; }
-        .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; height: calc(100vh - 100px); }
+        #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; height: 100vh; display: flex; flex-direction: column; }
+        .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; }
         
         /* SIDEBAR FIXED HEIGHT LOGIC */
-        .sidebar { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
+        .sidebar { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
         
-        /* Top Sidebar Card: flexible but contained */
+        /* This card now handles the distribution of space */
         .chart-card { 
-            padding: 14px; 
+            padding: 16px; 
             display: flex; 
             flex-direction: column; 
+            min-height: 0; /* Allows card to shrink */
             flex: 1; 
-            min-height: 0; 
-            overflow: hidden; 
         }
-        .chart-wrap { height: 120px; display: flex; justify-content: center; flex-shrink: 0; }
-        .balance-list { display: flex; flex-direction: column; gap: 5px; overflow-y: hidden; }
+        .chart-wrap { height: 130px; display: flex; justify-content: center; flex-shrink: 0; }
         
-        /* Slimmer Balance Cards */
-        .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 8px; font-size: 11px; }
+        /* Balance list constrained so Post New Expense is never pushed */
+        .balance-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+            overflow-y: auto; 
+            flex-grow: 1;
+        }
+        .balance-list::-webkit-scrollbar { width: 3px; }
+        .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
         .balance-card.owed { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
         .balance-card.owes { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
         .balance-card.even { background: #f8fafc; border: 1px solid var(--border); color: var(--muted); }
 
-        /* Form Card: Pinned to Bottom, No Shrinking */
-        .form-card { padding: 14px; flex-shrink: 0; }
+        /* The form card is now anchored */
+        .form-card { padding: 14px; flex-shrink: 0; margin-top: auto; }
         .form-field { display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px; background: #f9fafb; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 12px; outline: none; }
         .submit-btn { width: 100%; padding: 9px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
 
@@ -82,6 +91,12 @@
         thead th { padding: 10px 16px; font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--subtle); text-align: left; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); }
         tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; }
 
+        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff; margin: 0 auto 20px; background: var(--color-lodging); transition: background 0.2s; }
+        .color-swatches { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+        .swatch.active { border-color: var(--text); transform: scale(1.15); }
+        .profile-btn { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; border: none; cursor: pointer; background: var(--color-lodging); }
+        
         .rb-modal { position: fixed; inset: 0; z-index: 160; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
         .rb-modal.hidden { display: none; }
         .modal-card { background: var(--card); border-radius: 20px; padding: 28px; width: 360px; animation: slideUp 0.2s ease-out both; }
@@ -131,6 +146,7 @@
 <div id="balance-modal" class="rb-modal hidden">
     <div class="modal-card">
         <h3 class="text-base font-semibold mb-2">Full Balance Sheet</h3>
+        <p class="text-[10px] text-gray-400 uppercase font-bold mb-4 tracking-wider">All Members</p>
         <div id="full-balance-list" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1"></div>
         <button class="auth-btn mt-6 w-full" onclick="document.getElementById('balance-modal').classList.add('hidden')">Close</button>
     </div>
@@ -145,15 +161,17 @@
                 <button class="text-[11px] text-gray-400 font-medium" id="btn-logout">Sign Out</button>
             </div>
         </div>
+        <div class="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-3">Your Trips</div>
         <div id="groups-list"></div>
         <div class="grid grid-cols-2 gap-3 mt-8">
             <div class="bg-white border p-4 rounded-xl">
-                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Create</h4>
+                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Create Trip</h4>
                 <input class="auth-input text-xs" id="new-trip-code" placeholder="Trip code">
+                <input class="auth-input text-xs" id="new-trip-name" placeholder="Friendly name">
                 <button class="action-submit" id="btn-create-trip">Create</button>
             </div>
             <div class="bg-white border p-4 rounded-xl">
-                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Join</h4>
+                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Join Trip</h4>
                 <input class="auth-input text-xs" id="join-trip-code" placeholder="Enter code">
                 <button class="action-submit secondary" id="btn-join-trip">Join</button>
             </div>
@@ -164,7 +182,7 @@
 <div id="app-screen" class="screen hidden">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
         <div class="flex items-center gap-3">
-            <button class="text-xs border px-3 py-1 rounded-lg text-gray-500" id="btn-back">← Back</button>
+            <button class="text-xs border px-3 py-1 rounded-lg text-gray-500" id="btn-back">← My Trips</button>
             <span class="font-mono text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded" id="display-trip-id">—</span>
         </div>
         <div class="bg-gray-900 text-white px-4 py-2 rounded-xl text-right">
@@ -178,13 +196,13 @@
             <div class="card chart-card">
                 <div class="chart-wrap"><canvas id="budgetChart"></canvas></div>
                 <div class="flex justify-between items-end mt-4 mb-2">
-                    <div class="text-[9px] font-bold uppercase text-gray-400">Balances</div>
+                    <div class="text-[9px] font-bold uppercase text-gray-400">Balance Sheet</div>
                     <button id="btn-view-all-balances" class="text-[9px] font-bold text-indigo-600 uppercase hover:underline hidden" onclick="document.getElementById('balance-modal').classList.remove('hidden')">View All</button>
                 </div>
                 <div class="balance-list" id="settle-up-list"></div>
             </div>
             <div class="card form-card">
-                <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-2">New Expense</h3>
+                <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Post New Expense</h3>
                 <form id="expense-form">
                     <input class="form-field" type="text" id="item_name" placeholder="Item name" required>
                     <div class="grid grid-cols-2 gap-2">
@@ -196,7 +214,7 @@
                             <option value="Activity">🎟️ Activity</option>
                         </select>
                     </div>
-                    <input class="form-field" type="text" id="paid_by" placeholder="Who paid?" required>
+                    <input class="form-field" type="text" id="paid_by" placeholder="Who paid? (exact name)" required>
                     <input class="form-field" type="number" id="split_count" min="1" placeholder="Split count" required>
                     <button type="submit" class="submit-btn" id="btn-submit">Add to Trip</button>
                 </form>
@@ -220,6 +238,8 @@
         </div>
     </div>
 </div>
+
+<div id="toast"></div>
 
 <script>
 const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
@@ -258,39 +278,53 @@ function initSwatches(ctx) {
         s.onclick = () => { currentAvatarColor = c; container.querySelectorAll(".swatch").forEach(x => x.classList.remove("active")); s.classList.add("active"); preview.style.background = c; };
         container.appendChild(s);
     });
+    const input = document.getElementById(`${ctx}-display-name`);
+    input.oninput = () => { preview.textContent = getInitials(input.value); };
 }
 
 async function saveProfile(name, color) {
     if (!name.trim()) return false;
-    await sb.auth.updateUser({ data: { display_name: name.trim(), avatar_color: color } });
+    const { error } = await sb.auth.updateUser({ data: { display_name: name.trim(), avatar_color: color } });
+    if (error) return false;
     currentDisplayName = name.trim(); currentAvatarColor = color;
     updateUIProfile();
+    if (currentTripId) refreshCurrentUserInStrip();
     return true;
 }
 
 function updateUIProfile() { 
     const b = document.getElementById("btn-open-profile"); 
-    b.textContent = getInitials(currentDisplayName); 
-    b.style.background = currentAvatarColor; 
+    if (b) {
+        b.textContent = getInitials(currentDisplayName); 
+        b.style.background = currentAvatarColor; 
+    }
 }
 
 document.getElementById("btn-save-profile").onclick = async () => { if (await saveProfile(document.getElementById("setup-display-name").value, currentAvatarColor)) { showScreen("groups-screen"); loadGroups(); } };
-document.getElementById("btn-open-profile").onclick = () => { document.getElementById("edit-display-name").value = currentDisplayName; initSwatches("edit"); document.getElementById("profile-modal").classList.remove("hidden"); };
-document.getElementById("btn-profile-cancel").onclick = () => document.getElementById("profile-modal").classList.add("hidden");
-document.getElementById("btn-save-profile-edit").onclick = async () => { if (await saveProfile(document.getElementById("edit-display-name").value, currentAvatarColor)) { document.getElementById("profile-modal").classList.add("hidden"); } };
+document.getElementById("btn-open-profile").onclick = () => { 
+    document.getElementById("edit-display-name").value = currentDisplayName; 
+    document.getElementById("edit-avatar-preview").textContent = getInitials(currentDisplayName);
+    document.getElementById("edit-avatar-preview").style.background = currentAvatarColor;
+    initSwatches("edit"); 
+    document.getElementById("profile-modal").classList.remove('hidden'); 
+};
+document.getElementById("btn-profile-cancel").onclick = () => document.getElementById("profile-modal").classList.add('hidden');
+document.getElementById("btn-save-profile-edit").onclick = async () => { if (await saveProfile(document.getElementById("edit-display-name").value, currentAvatarColor)) { document.getElementById("profile-modal").classList.add('hidden'); toast("Updated!"); } };
 
 async function loadGroups() {
     const { data } = await sb.from("trip_members").select("trip_id, trips(id, trip_code, name, creator_id)").eq("user_id", currentSession.user.id);
     const list = document.getElementById("groups-list"); list.innerHTML = "";
-    data?.forEach(r => {
+    if (!data?.length) return list.innerHTML = "<div class='text-center p-5 text-gray-400 text-xs'>No trips yet.</div>";
+    data.forEach(r => {
         const t = r.trips;
-        list.insertAdjacentHTML("beforeend", `<div class="group-card" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')"><div class="font-semibold text-sm">${t.name||t.trip_code}</div><button class="icon-btn">→</button></div>`);
+        list.insertAdjacentHTML("beforeend", `<div class="group-card" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')"><div><div class="font-semibold text-sm">${t.name||t.trip_code}</div><div class="text-[10px] text-gray-400">${t.trip_code}</div></div><button class="icon-btn">→</button></div>`);
     });
 }
 
 document.getElementById("btn-create-trip").onclick = async () => {
-    const code = document.getElementById("new-trip-code").value.toUpperCase();
-    const { data } = await sb.from("trips").insert({ trip_code: code, creator_id: currentSession.user.id }).select().single();
+    const code = document.getElementById("new-trip-code").value.toUpperCase(), name = document.getElementById("new-trip-name").value;
+    const { data, error } = await sb.from("trips").insert({ trip_code: code, name: name||null, creator_id: currentSession.user.id }).select().single();
+    if (error) return toast(error.message);
     await sb.from("trip_members").insert({ trip_id: data.id, user_id: currentSession.user.id, display_name: currentDisplayName, avatar_color: currentAvatarColor });
     loadGroups();
 };
@@ -298,12 +332,13 @@ document.getElementById("btn-create-trip").onclick = async () => {
 document.getElementById("btn-join-trip").onclick = async () => {
     const code = document.getElementById("join-trip-code").value.toUpperCase();
     const { data } = await sb.from("trips").select("id").eq("trip_code", code).single();
+    if (!data) return toast("Not found");
     await sb.from("trip_members").insert({ trip_id: data.id, user_id: currentSession.user.id, display_name: currentDisplayName, avatar_color: currentAvatarColor });
     loadGroups();
 };
 
 async function enterTrip(c, n) { currentTripId = c; document.getElementById("display-trip-id").textContent = n; showScreen("app-screen"); fetchEx(); loadMemberStrip(); }
-document.getElementById("btn-back").onclick = () => { showScreen("groups-screen"); loadGroups(); };
+document.getElementById("btn-back").onclick = () => { currentTripId = null; showScreen("groups-screen"); loadGroups(); };
 
 async function loadMemberStrip() {
     const s = document.getElementById("member-strip");
@@ -311,7 +346,9 @@ async function loadMemberStrip() {
     const { data: members } = await sb.from("trip_members").select("user_id, display_name, avatar_color").eq("trip_id", trip.id);
     s.innerHTML = "";
     members.forEach(m => {
-        s.insertAdjacentHTML("beforeend", `<div class="bg-white border rounded-full px-2 py-0.5 text-[10px] font-medium flex items-center gap-1"><div class="w-3 h-3 rounded-full" style="background:${m.avatar_color}"></div>${m.display_name}</div>`);
+        if(m.display_name && m.display_name !== 'null') {
+           s.insertAdjacentHTML("beforeend", `<div class="flex items-center gap-1.5 bg-white border rounded-full px-2 py-1 text-[10px] font-medium"><div class="w-4 h-4 rounded-full flex items-center justify-center text-[7px] text-white font-bold" style="background:${m.avatar_color}">${getInitials(m.display_name)}</div>${m.display_name}</div>`);
+        }
     });
 }
 
@@ -324,10 +361,11 @@ function renderUI(exps) {
     const table = document.getElementById("expense-table-body"), 
           settle = document.getElementById("settle-up-list"), 
           fullSettle = document.getElementById("full-balance-list"),
-          viewAllBtn = document.getElementById("btn-view-all-balances"),
-          totalEl = document.getElementById("total-cost");
+          sumDiv = document.getElementById("category-summary"), 
+          totalEl = document.getElementById("total-cost"),
+          viewAllBtn = document.getElementById("btn-view-all-balances");
 
-    table.innerHTML = ""; settle.innerHTML = ""; fullSettle.innerHTML = "";
+    table.innerHTML = ""; settle.innerHTML = ""; fullSettle.innerHTML = ""; sumDiv.innerHTML = "";
     let total = 0, cats = {}, bals = {};
     
     exps.forEach(e => {
@@ -335,20 +373,26 @@ function renderUI(exps) {
         total += a; cats[e.category] = (cats[e.category]||0) + a;
         if (!bals[e.paid_by]) bals[e.paid_by] = { p: 0, o: 0 };
         bals[e.paid_by].p += a; bals[e.paid_by].o += p;
-        table.insertAdjacentHTML("beforeend", `<tr><td><div class="text-xs font-medium">${e.item_name}</div></td><td><span class="text-[9px] font-bold uppercase" style="color:${CAT_COLORS[e.category]}">${e.category}</span></td><td class="text-right font-mono text-xs">$${a.toFixed(2)}</td></tr>`);
+        table.insertAdjacentHTML("beforeend", `<tr><td><div class="text-sm font-medium">${e.item_name}</div><div class="text-[10px] text-gray-400">Paid by ${e.paid_by}</div></td><td><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase" style="background:${CAT_COLORS[e.category]}20; color:${CAT_COLORS[e.category]}">${e.category}</span></td><td class="text-right font-mono text-sm">$${a.toFixed(2)}</td><td class="text-right"><button onclick="delEx(${e.id})" class="text-gray-300 hover:text-red-500">✕</button></td></tr>`);
     });
     
     totalEl.textContent = `$${total.toFixed(2)}`;
+    Object.entries(cats).forEach(([c, s]) => sumDiv.insertAdjacentHTML("beforeend", `<div class="bg-white border px-3 py-1 rounded-full text-[10px] font-medium"><span class="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style="background:${CAT_COLORS[c]}"></span>${c}: $${s.toFixed(2)}</div>`));
+    
     const balanceEntries = Object.entries(bals);
     
-    // VIEW ALL LOGIC: Clamp to 2 for small sidebars
+    // View All button threshold (2 entries max in sidebar before View All appears)
     if (balanceEntries.length > 2) viewAllBtn.classList.remove('hidden');
     else viewAllBtn.classList.add('hidden');
 
     balanceEntries.forEach(([n, b], index) => {
         const net = b.p - b.o, abs = Math.abs(net);
         const html = `<div class="balance-card ${net>=0?'owed':'owes'}"><div><div class="font-bold">${n}</div><div class="text-[9px] opacity-70">${net>=0?'is owed':'owes'}</div></div><span class="font-mono">$${abs.toFixed(2)}</span></div>`;
+        
+        // LIMIT TO 2 IN SIDEBAR
         if (index < 2) settle.insertAdjacentHTML("beforeend", html);
+        
+        // Add all to Modal
         fullSettle.insertAdjacentHTML("beforeend", html);
     });
     
@@ -358,7 +402,13 @@ function renderUI(exps) {
 function updateC(cats) {
     const ctx = document.getElementById("budgetChart").getContext("2d"); if (myChart) myChart.destroy();
     const l = Object.keys(cats); if (!l.length) return;
-    myChart = new Chart(ctx, { type: "doughnut", data: { labels: l, datasets: [{ data: Object.values(cats), backgroundColor: l.map(x => CAT_COLORS[x]), borderWidth: 0 }] }, options: { cutout: "80%", plugins: { legend: { display: false } } } });
+    myChart = new Chart(ctx, { type: "doughnut", data: { labels: l, datasets: [{ data: Object.values(cats), backgroundColor: l.map(x => CAT_COLORS[x]), borderWidth: 0 }] }, options: { cutout: "78%", plugins: { legend: { display: false } } } });
+}
+
+async function refreshCurrentUserInStrip() {
+    const { data: trip } = await sb.from("trips").select("id").eq("trip_code", currentTripId).single();
+    await sb.from("trip_members").update({ display_name: currentDisplayName, avatar_color: currentAvatarColor }).eq("trip_id", trip.id).eq("user_id", currentSession.user.id);
+    loadMemberStrip();
 }
 
 document.getElementById("expense-form").onsubmit = async e => {
@@ -368,11 +418,15 @@ document.getElementById("expense-form").onsubmit = async e => {
     e.target.reset(); fetchEx();
 };
 
+async function delEx(id) { await fetch(`${API_URL}/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${currentSession.access_token}` } }); fetchEx(); }
 document.getElementById("auth-submit").onclick = async () => {
     const email = document.getElementById("auth-email").value, pass = document.getElementById("auth-password").value;
-    const { data } = await sb.auth.signInWithPassword({ email, password: pass });
+    const { data, error } = isSignUp ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) return;
     init();
 };
+document.getElementById("auth-toggle").onclick = () => { isSignUp = !isSignUp; document.getElementById("auth-title").textContent = isSignUp ? "Create account" : "Welcome back"; };
+document.getElementById("btn-logout").onclick = document.getElementById("btn-logout-dash").onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
 init();
 </script>
