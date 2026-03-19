@@ -24,12 +24,30 @@
         <p class="font-bold tracking-wide animate-pulse">Syncing Cloud Data...</p>
     </div>
 
+    <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl auth-card">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">My Profile</h2>
+            <p class="text-slate-500 text-xs font-medium mb-6 uppercase tracking-widest">Payout Settings</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Display Name (Used in app)</label>
+                    <input type="text" id="profile-name" placeholder="e.g. Bryce" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Zelle Email or Phone</label>
+                    <input type="text" id="profile-payment" placeholder="name@email.com" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
+                </div>
+                <button id="btn-save-profile" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto">
         
         <div id="auth-container" class="auth-card bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md mx-auto mt-20">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-indigo-600 tracking-tight">✈️ RoamBudget</h2>
-                <p class="text-slate-500 mt-2 text-sm font-medium">Sign in to start tracking.</p>
+                <p class="text-slate-500 mt-2 text-sm font-medium italic">Sign in to start tracking.</p>
             </div>
             <form id="auth-form" class="space-y-4">
                 <input type="email" id="email" placeholder="Email" required class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
@@ -54,7 +72,8 @@
                     <h1 class="text-4xl font-black text-slate-900 tracking-tight">RoamBudget</h1>
                     <div class="flex items-center gap-2 mt-1">
                         <span id="display-trip-id" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded font-bold text-[10px] uppercase tracking-tighter"></span>
-                        <button id="btn-change-trip" class="text-[10px] text-slate-400 font-bold uppercase hover:text-indigo-600 underline">Switch Trip</button>
+                        <button id="btn-open-profile" class="text-[10px] text-indigo-500 font-black uppercase hover:underline">My Profile</button>
+                        <button id="btn-change-trip" class="text-[10px] text-slate-400 font-bold uppercase hover:text-indigo-600 underline pl-2 border-l">Switch Trip</button>
                         <button id="btn-logout" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest border-l pl-2">Sign Out</button>
                     </div>
                 </div>
@@ -76,17 +95,17 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <h3 class="text-lg font-bold mb-4">New Shared Expense</h3>
                         <form id="expense-form" class="space-y-4">
-                            <input type="text" id="item_name" placeholder="Item Name" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" id="item_name" placeholder="Item Name" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                             <div class="grid grid-cols-2 gap-3">
-                                <input type="number" id="amount" step="0.01" placeholder="$ Price" required class="p-3 bg-slate-50 border rounded-xl outline-none">
-                                <select id="category" class="p-3 bg-slate-50 border rounded-xl outline-none">
+                                <input type="number" id="amount" step="0.01" placeholder="$ Price" required class="p-3 bg-slate-50 border rounded-xl outline-none font-bold">
+                                <select id="category" class="p-3 bg-slate-50 border rounded-xl outline-none font-bold">
                                     <option value="Lodging">🏨 Lodging</option>
                                     <option value="Food">🍔 Food</option>
                                     <option value="Transport">✈️ Transport</option>
                                     <option value="Activity">🎟️ Activity</option>
                                 </select>
                             </div>
-                            <input type="text" id="paid_by" placeholder="Who paid? (Exact Name)" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none">
+                            <input type="text" id="paid_by" placeholder="Who paid? (Exact Name)" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none font-bold">
                             <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-xl">
                                 <span class="text-xs font-bold text-indigo-600 uppercase">Split By</span>
                                 <input type="number" id="split_count" value="1" min="1" required class="w-16 p-1 bg-white border rounded-lg text-center font-bold">
@@ -113,6 +132,7 @@
     </div>
 
     <script>
+        // --- CONFIG ---
         const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; 
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
         const API_URL = "https://roambudget-server.onrender.com/expenses"; 
@@ -121,10 +141,34 @@
         let myChart = null;
         let currentTripId = localStorage.getItem('active_trip_id');
 
+        // Load profile handle from storage
+        let myDisplayName = localStorage.getItem('profile_name') || "";
+        let myPaymentHandle = localStorage.getItem('profile_payment') || "";
+
         function toggleLoading(show) {
             document.getElementById('loading-overlay').classList.toggle('hidden', !show);
         }
 
+        // --- PROFILE LOGIC ---
+        document.getElementById('btn-open-profile').onclick = () => {
+            document.getElementById('profile-name').value = myDisplayName;
+            document.getElementById('profile-payment').value = myPaymentHandle;
+            document.getElementById('profile-modal').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-save-profile').onclick = () => {
+            myDisplayName = document.getElementById('profile-name').value.trim();
+            myPaymentHandle = document.getElementById('profile-payment').value.trim();
+            localStorage.setItem('profile_name', myDisplayName);
+            localStorage.setItem('profile_payment', myPaymentHandle);
+            document.getElementById('profile-modal').classList.add('hidden');
+            // Auto-fill form name if it's empty
+            if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
+            alert("Settings Saved Locally!");
+            location.reload(); // Refresh to update balance logic
+        };
+
+        // --- AUTH & NAV ---
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
@@ -133,6 +177,7 @@
                     document.getElementById('trip-selection-container').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     document.getElementById('display-trip-id').innerText = `TRIP: ${currentTripId}`;
+                    if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
                     fetchExpenses(session.access_token);
                 } else {
                     document.getElementById('trip-selection-container').classList.remove('hidden');
@@ -143,7 +188,7 @@
 
         document.getElementById('btn-logout').onclick = async () => {
             await supabaseClient.auth.signOut();
-            localStorage.removeItem('active_trip_id');
+            localStorage.clear();
             window.location.reload();
         };
 
@@ -160,6 +205,7 @@
             checkUserSession();
         };
 
+        // --- FETCH & RENDER ---
         async function fetchExpenses(token) {
             toggleLoading(true);
             try {
@@ -192,38 +238,46 @@
                 grandTotal += amt;
                 catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
 
-                // Simple Payout Math
                 balances[payer] = (balances[payer] || 0) + amt;
                 balances[payer] -= perPerson; 
 
                 tableBody.insertAdjacentHTML('beforeend', `
-                    <tr class="group hover:bg-slate-50 transition">
-                        <td class="p-5"><div class="font-bold text-slate-800">${exp.item_name}</div><div class="text-[10px] text-slate-400 font-bold uppercase">Paid By ${payer}</div></td>
-                        <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span></td>
-                        <td class="p-5 text-right font-black text-slate-700">$${amt.toFixed(2)}</td>
+                    <tr class="group hover:bg-slate-50 transition font-medium text-slate-700">
+                        <td class="p-5">
+                            <div class="font-black text-slate-900">${exp.item_name}</div>
+                            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Paid By ${payer}</div>
+                        </td>
+                        <td class="p-5 text-center">
+                            <span class="px-3 py-1 text-[9px] bg-slate-50 border border-slate-200 text-slate-500 rounded-full font-black uppercase tracking-tighter">${exp.category}</span>
+                        </td>
+                        <td class="p-5 text-right font-black text-slate-900">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 scale-125 px-2 transition">🗑️</button></td>
+                        <td class="p-5 text-center">
+                            <button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button>
+                        </td>
                     </tr>`);
             });
 
             totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
             updateChart(catTotals);
 
-            // Render Settle Up Chips
+            // Render Balance Sheet with Copy-to-Clipboard logic
             for (const [person, bal] of Object.entries(balances)) {
                 if (Math.abs(bal) < 0.01) continue;
                 const isOwed = bal > 0;
                 const color = isOwed ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-rose-600 bg-rose-50 border-rose-100';
                 
+                // If I am looking at someone who is OWED, I want to pay them.
+                // We'll use their name as the handle for now unless you set up a global database of user handles.
                 settleList.innerHTML += `
-                    <div class="flex flex-col p-3 rounded-xl border ${color}">
+                    <div class="flex flex-col p-4 rounded-2xl border ${color}">
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-black text-[10px] uppercase tracking-widest">${person}</span>
                             <span class="font-black text-base">$${Math.abs(bal).toFixed(2)}</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[9px] font-bold uppercase opacity-70">${isOwed ? 'Is Owed' : 'Owes Group'}</span>
-                            ${!isOwed ? `<button onclick="handleZelle('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white px-2 py-1 rounded shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay</button>` : ''}
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[9px] font-black uppercase opacity-60 italic">${isOwed ? 'Is Owed' : 'Owes Group'}</span>
+                            ${isOwed ? `<button onclick="handleZelle('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white text-slate-800 px-3 py-1 rounded-lg shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay Info</button>` : ''}
                         </div>
                     </div>`;
             }
@@ -234,8 +288,9 @@
         }
 
         function handleZelle(name, amt) {
+            // For now, it copies the name. In a real app, we'd fetch that person's payment handle from Supabase.
             navigator.clipboard.writeText(name);
-            alert(`"${name}" copied to clipboard!\n\nUse this in Zelle or Venmo to pay $${amt.toFixed(2)}`);
+            alert(`"${name}" copied to clipboard!\n\nUse this name in Zelle/Venmo to send $${amt.toFixed(2)}`);
         }
 
         function updateChart(catTotals) {
@@ -247,7 +302,7 @@
                     labels: Object.keys(catTotals),
                     datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0 }]
                 },
-                options: { plugins: { legend: { display: false } }, cutout: '80%' }
+                options: { plugins: { legend: { display: false } }, cutout: '82%' }
             });
         }
 
@@ -270,11 +325,12 @@
                 body: JSON.stringify(payload)
             });
             e.target.reset(); btn.disabled = false; btn.innerText = "Add to Trip";
+            if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
             fetchExpenses(session.access_token);
         };
 
         async function deleteExp(id, token) {
-            if (!confirm("Remove expense?")) return;
+            if (!confirm("Remove shared expense?")) return;
             await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             fetchExpenses(token);
         }
@@ -288,7 +344,7 @@
         document.getElementById('btn-signup').onclick = async () => {
             const { error } = await supabaseClient.auth.signUp({ email: document.getElementById('email').value, password: document.getElementById('password').value });
             if (error) alert(error.message);
-            else alert("Account created!");
+            else alert("Account created! Check email or login.");
         };
 
         checkUserSession();
