@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoamBudget | Shared Group Tracker</title>
+    <title>RoamBudget</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,237 +21,244 @@
             --muted: #6b7280;
             --subtle:#9ca3af;
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-            margin: 0;
+            background: var(--bg); color: var(--text);
+            height: 100vh; overflow: hidden; margin: 0;
         }
 
-        /* ── Auth Screen ─────────────────────────────── */
+        /* ── Shared: screen base ─────────────────────── */
+        .screen {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
+
+        /* ── Auth ────────────────────────────────────── */
         #auth-screen {
-            position: fixed; inset: 0; z-index: 50;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--bg);
+            align-items: center; justify-content: center;
+            background: var(--bg); z-index: 50;
         }
         .auth-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 36px 32px;
-            width: 360px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 36px 32px; width: 360px;
             animation: slideUp 0.35s ease-out both;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .auth-card h2 {
-            font-size: 22px; font-weight: 600; letter-spacing: -0.3px;
-            margin: 0 0 4px;
-        }
-        .auth-card p { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
-        .auth-card input {
-            display: block; width: 100%;
-            padding: 9px 12px; margin-bottom: 10px;
+        .auth-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
+        .auth-card p  { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+        .auth-input {
+            display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px;
             border: 1px solid var(--border); border-radius: 10px;
-            font-family: inherit; font-size: 13px;
-            background: #f9fafb; outline: none;
-            transition: border-color 0.15s;
+            font-family: inherit; font-size: 13px; background: #f9fafb;
+            outline: none; transition: border-color 0.15s;
         }
-        .auth-card input:focus { border-color: var(--color-lodging); }
+        .auth-input:focus { border-color: var(--color-lodging); }
         .auth-btn {
-            width: 100%; padding: 10px;
-            background: var(--color-lodging); color: #fff;
-            border: none; border-radius: 10px;
-            font-family: inherit; font-size: 12px;
-            font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-            cursor: pointer; transition: background 0.15s;
+            width: 100%; padding: 10px; background: var(--color-lodging); color: #fff;
+            border: none; border-radius: 10px; font-family: inherit;
+            font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; cursor: pointer; transition: background 0.15s;
         }
         .auth-btn:hover { background: #4f46e5; }
-        #auth-toggle {
-            display: block; text-align: center; margin-top: 14px;
-            font-size: 12px; color: var(--muted); cursor: pointer;
-        }
+        #auth-toggle { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--muted); cursor: pointer; }
         #auth-toggle span { color: var(--color-lodging); text-decoration: underline; }
         #auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; min-height: 16px; }
 
-        /* ── Layout ──────────────────────────────────── */
-        #app {
-            display: flex; flex-direction: column;
-            padding: 16px 20px; height: 100vh;
+        /* ── Groups Home ─────────────────────────────── */
+        #groups-screen { background: var(--bg); padding: 0; z-index: 40; overflow-y: auto; }
+        .groups-inner {
+            max-width: 560px; margin: 0 auto;
+            padding: 48px 24px 40px;
         }
-        #app.hidden { display: none; }
+        .groups-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px;
+        }
+        .brand { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; font-style: italic; }
+        .ghost-btn {
+            font-size: 11px; font-weight: 500; color: var(--subtle);
+            background: none; border: none; cursor: pointer;
+            font-family: inherit; transition: color 0.15s;
+        }
+        .ghost-btn:hover { color: #ef4444; }
 
-        /* ── Header ──────────────────────────────────── */
+        .groups-section-label {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--subtle); margin-bottom: 10px;
+        }
+
+        /* Group cards */
+        .group-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px; cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .group-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.08); }
+        .group-card-left { display: flex; flex-direction: column; gap: 3px; }
+        .group-card-name { font-size: 14px; font-weight: 600; letter-spacing: -0.1px; }
+        .group-card-meta { font-size: 11px; color: var(--muted); }
+        .group-card-right { display: flex; align-items: center; gap: 8px; }
+        .creator-badge {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; padding: 3px 7px; border-radius: 5px;
+            background: #eef2ff; color: var(--color-lodging);
+        }
+        .group-actions { display: flex; gap: 4px; }
+        .icon-btn {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border); background: var(--card);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: var(--muted); transition: all 0.15s;
+        }
+        .icon-btn:hover.leave  { border-color: #fca5a5; color: #ef4444; background: #fff1f2; }
+        .icon-btn:hover.delete { border-color: #fca5a5; color: #ef4444; background: #fff1f2; }
+        .icon-btn:hover.enter  { border-color: #a5b4fc; color: var(--color-lodging); background: #eef2ff; }
+
+        /* Create / Join trip forms */
+        .action-cards {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-top: 28px;
+        }
+        .action-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px;
+        }
+        .action-card h4 {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+        }
+        .action-input {
+            display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px;
+            border: 1px solid var(--border); border-radius: 9px;
+            font-family: inherit; font-size: 12px; background: #f9fafb;
+            outline: none; transition: border-color 0.15s; color: var(--text);
+        }
+        .action-input:focus { border-color: var(--color-lodging); }
+        .action-submit {
+            width: 100%; padding: 8px; background: var(--text); color: #fff;
+            border: none; border-radius: 9px; font-family: inherit;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+        }
+        .action-submit:hover { opacity: 0.8; }
+        .action-submit.secondary {
+            background: #eef2ff; color: var(--color-lodging);
+        }
+        .action-submit.secondary:hover { background: #e0e7ff; opacity: 1; }
+
+        .empty-groups {
+            text-align: center; padding: 32px 20px;
+            color: var(--subtle); font-size: 13px;
+        }
+        .empty-groups div { font-size: 28px; margin-bottom: 8px; }
+
+        /* ── Dashboard ───────────────────────────────── */
+        #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; }
+
         .topbar {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 14px; flex-shrink: 0;
         }
-        .brand {
-            font-size: 20px; font-weight: 600;
-            letter-spacing: -0.4px; font-style: italic;
-            color: var(--text);
+        .topbar-left { display: flex; align-items: center; gap: 10px; }
+        .back-btn {
+            font-size: 11px; font-weight: 500; color: var(--muted);
+            background: none; border: 1px solid var(--border); border-radius: 8px;
+            padding: 4px 10px; cursor: pointer; font-family: inherit;
+            transition: all 0.15s;
         }
+        .back-btn:hover { border-color: #a5b4fc; color: var(--color-lodging); }
         .trip-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px; font-weight: 500;
+            font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
             background: #eef2ff; color: var(--color-lodging);
-            padding: 3px 8px; border-radius: 6px;
-            letter-spacing: 0.04em;
+            padding: 3px 8px; border-radius: 6px; letter-spacing: 0.04em;
         }
-        .meta-actions { display: flex; align-items: center; gap: 12px; }
-        .meta-actions button {
-            font-size: 11px; font-weight: 500;
-            color: var(--subtle); background: none; border: none;
-            cursor: pointer; font-family: inherit;
-            transition: color 0.15s;
-        }
-        .meta-actions button:hover { color: #ef4444; }
         .total-pill {
             background: var(--text); color: #fff;
             padding: 8px 18px; border-radius: 14px;
             display: flex; flex-direction: column; align-items: flex-end;
         }
-        .total-pill .label {
-            font-size: 9px; font-weight: 600;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            opacity: 0.5;
-        }
-        .total-pill .amount {
-            font-size: 26px; font-weight: 600;
-            letter-spacing: -1px; line-height: 1;
-        }
+        .total-pill .label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
+        .total-pill .amount { font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
 
-        /* ── Grid ────────────────────────────────────── */
         .grid-main {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 14px;
-            flex-grow: 1;
-            min-height: 0;
+            display: grid; grid-template-columns: 300px 1fr;
+            gap: 14px; flex-grow: 1; min-height: 0;
         }
-
-        /* ── Cards ───────────────────────────────────── */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-        }
-        .sidebar {
-            display: flex; flex-direction: column; gap: 12px;
-            overflow: hidden;
-        }
-
-        /* ── Chart card ──────────────────────────────── */
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
         .chart-card { padding: 16px; flex-shrink: 0; }
         .chart-wrap { height: 140px; display: flex; justify-content: center; }
 
-        /* ── Balance Sheet ───────────────────────────── */
         .section-label {
-            font-size: 9px; font-weight: 600;
-            letter-spacing: 0.1em; text-transform: uppercase;
-            color: var(--subtle); margin-bottom: 8px;
+            font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--subtle); margin-bottom: 8px;
         }
-        .balance-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+
+        /* Balance cards */
+        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; }
         .balance-list::-webkit-scrollbar { width: 3px; }
         .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         .balance-card {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 9px 12px; border-radius: 10px;
-            font-size: 11px; font-weight: 500;
+            padding: 8px 11px; border-radius: 10px; font-size: 11px;
         }
-        .balance-card.owed {
-            background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
-        }
-        .balance-card.owes {
-            background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239;
-        }
-        .balance-card .name { font-weight: 600; letter-spacing: 0.02em; }
-        .balance-card .val  { font-family: 'DM Mono', monospace; font-size: 11px; }
+        .balance-card.owed { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .balance-card.owes { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
+        .balance-card.even { background: #f8fafc; border: 1px solid var(--border); color: var(--muted); }
+        .balance-card .bname { font-weight: 600; letter-spacing: 0.02em; }
+        .balance-card .bval  { font-family: 'DM Mono', monospace; font-size: 11px; }
+        .balance-card .bsub  { font-size: 9px; opacity: 0.7; }
 
-        /* ── Payout buttons ──────────────────────────── */
-        .payout-row {
-            display: flex; gap: 6px; margin-top: 4px;
-        }
-        .payout-btn {
-            flex: 1; padding: 4px 0;
-            border-radius: 6px; border: 1px solid var(--border);
-            font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
-            text-transform: uppercase; cursor: pointer;
-            font-family: inherit; background: var(--card);
-            color: var(--muted); text-align: center;
-            text-decoration: none; display: block;
-            transition: all 0.15s;
-        }
-        .payout-btn:hover { border-color: #a5b4fc; color: var(--color-lodging); }
-
-        /* ── Form card ───────────────────────────────── */
+        /* Form */
         .form-card { padding: 14px; flex-shrink: 0; }
         .form-card h3 { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-        .form-card input,
-        .form-card select {
-            width: 100%; padding: 8px 10px;
-            background: #f9fafb; border: 1px solid var(--border);
-            border-radius: 9px; font-family: inherit; font-size: 12px;
-            color: var(--text); outline: none; transition: border-color 0.15s;
-            margin-bottom: 8px; display: block;
+        .form-field {
+            display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px;
+            background: #f9fafb; border: 1px solid var(--border); border-radius: 9px;
+            font-family: inherit; font-size: 12px; color: var(--text);
+            outline: none; transition: border-color 0.15s;
         }
-        .form-card input:focus,
-        .form-card select:focus { border-color: var(--color-lodging); }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .form-grid input,
-        .form-grid select { margin-bottom: 0; }
+        .form-field:focus { border-color: var(--color-lodging); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .form-grid .form-field { margin-bottom: 0; }
         .submit-btn {
-            width: 100%; padding: 9px;
-            background: var(--text); color: #fff;
-            border: none; border-radius: 9px;
-            font-family: inherit; font-size: 10px;
-            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-            cursor: pointer; transition: opacity 0.15s; margin-top: 2px;
+            width: 100%; padding: 9px; background: var(--text); color: #fff;
+            border: none; border-radius: 9px; font-family: inherit;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
         }
-        .submit-btn:hover { opacity: 0.85; }
+        .submit-btn:hover  { opacity: 0.85; }
         .submit-btn:disabled { opacity: 0.45; cursor: default; }
 
-        /* ── Right column ────────────────────────────── */
+        /* Right col */
         .right-col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-
-        /* ── Category pills ──────────────────────────── */
         .cat-pills { display: flex; flex-wrap: wrap; gap: 7px; flex-shrink: 0; }
         .cat-pill {
-            padding: 5px 12px; border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            font-size: 10px; font-weight: 500;
+            padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+            background: var(--card); font-size: 10px; font-weight: 500;
             color: var(--muted); white-space: nowrap;
         }
-        .cat-pill .cat-amt {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px; font-weight: 500;
-        }
+        .cat-amt { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; }
 
-        /* ── Table ───────────────────────────────────── */
-        .table-card {
-            flex-grow: 1; min-height: 0;
-            overflow: hidden; display: flex; flex-direction: column;
-        }
+        .table-card { flex-grow: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
         .table-inner { overflow-y: auto; flex-grow: 1; }
         .table-inner::-webkit-scrollbar { width: 4px; }
         .table-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         table { width: 100%; border-collapse: collapse; }
         thead th {
-            padding: 10px 16px;
-            font-size: 9px; font-weight: 600;
-            letter-spacing: 0.1em; text-transform: uppercase;
-            color: var(--subtle); text-align: left;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 16px; font-size: 9px; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle);
+            text-align: left; border-bottom: 1px solid var(--border);
             position: sticky; top: 0; background: var(--card);
         }
         thead th:last-child { text-align: right; }
@@ -260,95 +267,121 @@
         tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
         tbody tr:last-child td { border-bottom: none; }
 
-        .exp-name {
-            font-size: 13px; font-weight: 500;
-            letter-spacing: -0.1px; color: var(--text);
-        }
-        .exp-paidby {
-            font-size: 10px; color: var(--subtle);
-            font-weight: 400; margin-top: 1px;
-        }
+        .exp-name   { font-size: 13px; font-weight: 500; letter-spacing: -0.1px; }
+        .exp-paidby { font-size: 10px; color: var(--subtle); margin-top: 1px; }
         .cat-tag {
-            display: inline-block;
-            padding: 2px 8px; border-radius: 5px;
-            font-size: 9px; font-weight: 600;
-            letter-spacing: 0.05em; text-transform: uppercase;
+            display: inline-block; padding: 2px 8px; border-radius: 5px;
+            font-size: 9px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
         }
         .tag-Lodging   { background: #eef2ff; color: #4f46e5; }
         .tag-Food      { background: #fff1f2; color: #e11d48; }
         .tag-Transport { background: #f0fdf4; color: #059669; }
         .tag-Activity  { background: #fffbeb; color: #d97706; }
 
-        .exp-amount {
-            font-family: 'DM Mono', monospace;
-            font-size: 13px; font-weight: 500;
-            color: var(--text); text-align: right;
-        }
-        .exp-split {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px; color: var(--color-lodging);
-            font-style: italic; text-align: right;
-        }
+        .exp-amount { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; text-align: right; }
+        .exp-split  { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--color-lodging); font-style: italic; text-align: right; }
         .delete-btn {
-            background: none; border: none; cursor: pointer;
-            color: #d1d5db; padding: 4px 6px; border-radius: 6px;
-            font-size: 13px; line-height: 1;
+            background: none; border: none; cursor: pointer; color: #d1d5db;
+            padding: 4px 6px; border-radius: 6px; font-size: 13px; line-height: 1;
             transition: all 0.15s;
         }
         .delete-btn:hover { color: #ef4444; background: #fff1f2; }
 
-        .empty-state {
-            text-align: center; padding: 50px 20px;
-            color: var(--subtle); font-size: 13px;
-        }
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--subtle); font-size: 13px; }
         .empty-state div { font-size: 28px; margin-bottom: 8px; }
 
         /* ── Toast ───────────────────────────────────── */
         #toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: var(--text); color: #fff;
-            padding: 9px 18px; border-radius: 10px;
-            font-size: 12px; font-weight: 500;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.2s;
-            z-index: 100;
+            background: var(--text); color: #fff; padding: 9px 18px; border-radius: 10px;
+            font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s; z-index: 200;
         }
         #toast.show { opacity: 1; }
 
-        /* ── Loader ──────────────────────────────────── */
-        .loading { opacity: 0.4; pointer-events: none; }
+        /* ── Confirm modal ───────────────────────────── */
+        #confirm-modal {
+            position: fixed; inset: 0; z-index: 150; background: rgba(0,0,0,0.35);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #confirm-modal.hidden { display: none; }
+        .confirm-card {
+            background: var(--card); border-radius: 16px; padding: 28px 26px;
+            width: 320px; animation: slideUp 0.2s ease-out both;
+        }
+        .confirm-card h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+        .confirm-card p  { font-size: 12px; color: var(--muted); margin: 0 0 20px; line-height: 1.5; }
+        .confirm-actions { display: flex; gap: 8px; }
+        .confirm-cancel {
+            flex: 1; padding: 9px; border: 1px solid var(--border); border-radius: 9px;
+            background: var(--card); font-family: inherit; font-size: 11px;
+            font-weight: 600; cursor: pointer; transition: background 0.15s; color: var(--muted);
+        }
+        .confirm-cancel:hover { background: #f9fafb; }
+        .confirm-ok {
+            flex: 1; padding: 9px; border: none; border-radius: 9px;
+            background: #ef4444; color: #fff; font-family: inherit; font-size: 11px;
+            font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+        }
+        .confirm-ok:hover { opacity: 0.85; }
     </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     AUTH SCREEN
-════════════════════════════════════════════════════ -->
-<div id="auth-screen">
+<!-- ═══════════════════════ AUTH ════════════════════════════════════ -->
+<div id="auth-screen" class="screen">
     <div class="auth-card">
         <h2 id="auth-title">Welcome back</h2>
-        <p id="auth-subtitle">Sign in to access your trip</p>
-        <input type="email" id="auth-email" placeholder="Email address" autocomplete="email">
-        <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+        <p id="auth-subtitle">Sign in to access your trips</p>
+        <input class="auth-input" type="email"    id="auth-email"    placeholder="Email address" autocomplete="email">
+        <input class="auth-input" type="password" id="auth-password" placeholder="Password"      autocomplete="current-password">
         <button class="auth-btn" id="auth-submit">Sign In</button>
         <div id="auth-error"></div>
         <span id="auth-toggle">No account? <span id="auth-toggle-link">Create one</span></span>
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     APP
-════════════════════════════════════════════════════ -->
-<div id="app" class="hidden">
+<!-- ═══════════════════════ GROUPS HOME ════════════════════════════ -->
+<div id="groups-screen" class="screen hidden">
+    <div class="groups-inner">
 
-    <!-- Topbar -->
-    <div class="topbar">
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div class="groups-header">
             <span class="brand">RoamBudget</span>
-            <span class="trip-badge" id="display-trip-id">—</span>
-            <div class="meta-actions">
-                <button id="btn-logout">Sign Out</button>
+            <button class="ghost-btn" id="btn-logout">Sign Out</button>
+        </div>
+
+        <div class="groups-section-label">Your Trips</div>
+        <div id="groups-list">
+            <div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>
+        </div>
+
+        <div class="action-cards">
+            <!-- Create trip -->
+            <div class="action-card">
+                <h4>Create Trip</h4>
+                <input class="action-input" id="new-trip-code"  placeholder="Trip code (e.g. PARIS2026)" maxlength="20">
+                <input class="action-input" id="new-trip-name"  placeholder="Display name (optional)">
+                <button class="action-submit" id="btn-create-trip">Create</button>
             </div>
+            <!-- Join trip -->
+            <div class="action-card">
+                <h4>Join Trip</h4>
+                <input class="action-input" id="join-trip-code" placeholder="Enter trip code">
+                <button class="action-submit secondary" id="btn-join-trip">Join</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════════════════ DASHBOARD ══════════════════════════════ -->
+<div id="app-screen" class="screen hidden" style="display:flex; flex-direction:column;">
+
+    <div class="topbar" style="flex-shrink:0;">
+        <div class="topbar-left">
+            <button class="back-btn" id="btn-back">← My Trips</button>
+            <span class="trip-badge" id="display-trip-id">—</span>
+            <button class="ghost-btn" id="btn-logout-dash">Sign Out</button>
         </div>
         <div class="total-pill">
             <span class="label">Trip Total</span>
@@ -356,26 +389,21 @@
         </div>
     </div>
 
-    <!-- Main grid -->
-    <div class="grid-main">
+    <div class="grid-main" style="flex-grow:1; min-height:0;">
 
-        <!-- ── LEFT SIDEBAR ── -->
+        <!-- LEFT SIDEBAR -->
         <div class="sidebar">
 
             <!-- Chart + Balance Sheet -->
             <div class="card chart-card">
-                <div class="chart-wrap">
-                    <canvas id="budgetChart"></canvas>
+                <div class="chart-wrap"><canvas id="budgetChart"></canvas></div>
+
+                <div class="section-label" style="margin-top:14px;">
+                    Balance Sheet
+                    <span style="font-size:8px; color:var(--subtle); font-style:italic; margin-left:4px; text-transform:none; letter-spacing:0;">(net per person)</span>
                 </div>
-                <div class="section-label" style="margin-top:14px;">Balance Sheet</div>
                 <div class="balance-list" id="settle-up-list">
                     <div style="color:var(--subtle);font-size:11px;">No expenses yet.</div>
-                </div>
-
-                <!-- Payout deep links — only shown when handles are set -->
-                <div id="payout-section" style="margin-top:12px; display:none;">
-                    <div class="section-label">Quick Payout</div>
-                    <div class="payout-row" id="payout-links"></div>
                 </div>
             </div>
 
@@ -383,31 +411,26 @@
             <div class="card form-card">
                 <h3>Post New Expense</h3>
                 <form id="expense-form">
-                    <input type="text" id="item_name" placeholder="Item name" required>
+                    <input class="form-field" type="text"   id="item_name"   placeholder="Item name" required>
                     <div class="form-grid">
-                        <input type="number" id="amount" step="0.01" min="0.01" placeholder="$ Price" required style="margin-bottom:0">
-                        <select id="category" style="margin-bottom:0">
+                        <input class="form-field" type="number" id="amount"   step="0.01" min="0.01" placeholder="$ Price" required>
+                        <select class="form-field" id="category">
                             <option value="Lodging">🏨 Lodging</option>
                             <option value="Food">🍔 Food</option>
                             <option value="Transport">✈️ Transport</option>
                             <option value="Activity">🎟️ Activity</option>
                         </select>
                     </div>
-                    <input type="text" id="paid_by" placeholder="Who paid? (exact name)" required style="margin-top:8px;">
-                    <input type="number" id="split_count" min="1" placeholder="Split between how many?" required>
+                    <input class="form-field" type="text"   id="paid_by"     placeholder="Who paid? (exact name)" required>
+                    <input class="form-field" type="number" id="split_count" min="1" placeholder="Split between how many?" required>
                     <button type="submit" class="submit-btn" id="btn-submit">Add to Trip</button>
                 </form>
             </div>
-
         </div>
 
-        <!-- ── RIGHT COLUMN ── -->
+        <!-- RIGHT COLUMN -->
         <div class="right-col">
-
-            <!-- Category summary pills -->
             <div class="cat-pills" id="category-summary"></div>
-
-            <!-- Expense table -->
             <div class="card table-card">
                 <div class="table-inner">
                     <table>
@@ -423,7 +446,18 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
+<!-- ═══════════════════════ CONFIRM MODAL ══════════════════════════ -->
+<div id="confirm-modal" class="hidden">
+    <div class="confirm-card">
+        <h3 id="confirm-title">Are you sure?</h3>
+        <p  id="confirm-body">This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="confirm-cancel" id="confirm-cancel">Cancel</button>
+            <button class="confirm-ok"     id="confirm-ok">Confirm</button>
         </div>
     </div>
 </div>
@@ -431,22 +465,15 @@
 <!-- Toast -->
 <div id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════════════════════ -->
 <script>
-// ── CONFIG ─────────────────────────────────────────────────────────
-// REPLACE these with your real values (or load from a .env build step)
+// ══════════════════════════════════════════════════════════════════
+//  CONFIG  —  replace with your real values
+// ══════════════════════════════════════════════════════════════════
 const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";   // ← replace
+const SB_KEY  = "YOUR_SUPABASE_ANON_KEY";   // ← replace
 const API_URL = "https://roambudget-server.onrender.com/expenses";
+const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
-// Optional: Venmo/CashApp handles for the Quick Payout feature.
-// Set to null to hide the section.
-// Format: { "Alice": { venmo: "alice-venmo", cashapp: "$AliceCash" }, ... }
-const PAYOUT_HANDLES = null;
-
-// ── CATEGORY COLOR MAP (position-independent) ───────────────────────
 const CAT_COLORS = {
     Lodging:   "#6366f1",
     Food:      "#f43f5e",
@@ -454,80 +481,287 @@ const CAT_COLORS = {
     Activity:  "#f59e0b",
 };
 
-// ── INIT ────────────────────────────────────────────────────────────
-const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
+const sb = supabase.createClient(SB_URL, SB_KEY);
 let myChart = null;
-let currentTripId = localStorage.getItem("roam_trip_id") || "JAMAICA2026";
-let isSignUp = false;
+let currentTripId   = null;   // trip_code string
+let currentTripRow  = null;   // full trips row
+let currentSession  = null;
+let confirmCallback = null;
+let isSignUp        = false;
 
-document.getElementById("display-trip-id").textContent = currentTripId;
+// ══════════════════════════════════════════════════════════════════
+//  SCREEN ROUTER
+// ══════════════════════════════════════════════════════════════════
+function showScreen(id) {
+    ["auth-screen","groups-screen","app-screen"].forEach(s => {
+        const el = document.getElementById(s);
+        el.classList.toggle("hidden", s !== id);
+    });
+}
 
-// ── TOAST ───────────────────────────────────────────────────────────
-function toast(msg, duration = 2400) {
+// ══════════════════════════════════════════════════════════════════
+//  TOAST + CONFIRM
+// ══════════════════════════════════════════════════════════════════
+function toast(msg, ms = 2500) {
     const el = document.getElementById("toast");
     el.textContent = msg;
     el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), duration);
+    setTimeout(() => el.classList.remove("show"), ms);
 }
 
-// ── AUTH GUARD ──────────────────────────────────────────────────────
+function confirm(title, body, cb) {
+    document.getElementById("confirm-title").textContent = title;
+    document.getElementById("confirm-body").textContent  = body;
+    document.getElementById("confirm-modal").classList.remove("hidden");
+    confirmCallback = cb;
+}
+document.getElementById("confirm-cancel").onclick = () => {
+    document.getElementById("confirm-modal").classList.add("hidden");
+    confirmCallback = null;
+};
+document.getElementById("confirm-ok").onclick = () => {
+    document.getElementById("confirm-modal").classList.add("hidden");
+    if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════════
 async function init() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (session) {
-        showApp();
-        fetchExpenses();
+        currentSession = session;
+        showScreen("groups-screen");
+        loadGroups();
+    } else {
+        showScreen("auth-screen");
     }
-    // else auth screen stays visible
 }
 
-function showApp() {
-    document.getElementById("auth-screen").style.display = "none";
-    document.getElementById("app").classList.remove("hidden");
-}
-
-// ── AUTH LOGIC ──────────────────────────────────────────────────────
-document.getElementById("auth-submit").addEventListener("click", async () => {
+document.getElementById("auth-submit").onclick = async () => {
     const email    = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
     const errEl    = document.getElementById("auth-error");
     errEl.textContent = "";
+    if (!email || !password) { errEl.textContent = "Fill in both fields."; return; }
 
-    if (!email || !password) { errEl.textContent = "Please fill in both fields."; return; }
+    const { data, error } = isSignUp
+        ? await sb.auth.signUp({ email, password })
+        : await sb.auth.signInWithPassword({ email, password });
 
-    const fn = isSignUp
-        ? supabaseClient.auth.signUp({ email, password })
-        : supabaseClient.auth.signInWithPassword({ email, password });
-
-    const { error } = await fn;
     if (error) { errEl.textContent = error.message; return; }
-
     if (isSignUp) {
         errEl.style.color = "#16a34a";
-        errEl.textContent = "Check your email to confirm your account.";
-    } else {
-        showApp();
-        fetchExpenses();
+        errEl.textContent = "Check your email to confirm.";
+        return;
     }
-});
+    currentSession = data.session;
+    showScreen("groups-screen");
+    loadGroups();
+};
 
-document.getElementById("auth-toggle").addEventListener("click", () => {
+document.getElementById("auth-toggle").onclick = () => {
     isSignUp = !isSignUp;
-    document.getElementById("auth-title").textContent    = isSignUp ? "Create account"   : "Welcome back";
-    document.getElementById("auth-subtitle").textContent = isSignUp ? "Join your trip"   : "Sign in to access your trip";
-    document.getElementById("auth-submit").textContent   = isSignUp ? "Sign Up"          : "Sign In";
-    document.getElementById("auth-toggle-link").textContent = isSignUp ? "Sign in instead" : "Create one";
-    document.getElementById("auth-error").textContent = "";
-});
+    document.getElementById("auth-title").textContent       = isSignUp ? "Create account"    : "Welcome back";
+    document.getElementById("auth-subtitle").textContent    = isSignUp ? "Join your trip"    : "Sign in to access your trips";
+    document.getElementById("auth-submit").textContent      = isSignUp ? "Sign Up"           : "Sign In";
+    document.getElementById("auth-toggle-link").textContent = isSignUp ? "Sign in instead"   : "Create one";
+    document.getElementById("auth-error").textContent       = "";
+};
 
-document.getElementById("btn-logout").addEventListener("click", async () => {
-    await supabaseClient.auth.signOut();
-    location.reload();
-});
+async function signOut() {
+    await sb.auth.signOut();
+    currentSession = null; currentTripId = null; currentTripRow = null;
+    showScreen("auth-screen");
+}
+document.getElementById("btn-logout").onclick      = signOut;
+document.getElementById("btn-logout-dash").onclick = signOut;
 
-// ── FETCH & RENDER ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  GROUPS HOME
+// ══════════════════════════════════════════════════════════════════
+async function loadGroups() {
+    if (!currentSession) return;
+    const { data, error } = await sb
+        .from("trip_members")
+        .select("trip_id, trips(id, trip_code, creator_id)")
+        .eq("user_id", currentSession.user.id);
+
+    const list = document.getElementById("groups-list");
+
+    if (error) {
+        list.innerHTML = `<div class="empty-groups" style="color:#ef4444;">Error loading trips: ${escHtml(error.message)}</div>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        list.innerHTML = `<div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>`;
+        return;
+    }
+
+    list.innerHTML = "";
+    for (const row of data) {
+        const trip       = row.trips;
+        const isCreator  = trip.creator_id === currentSession.user.id;
+        const code       = trip.trip_code;
+
+        // Fetch expense count + total for this trip to show in meta
+        const { data: exps } = await sb
+            .from("trip_expenses")
+            .select("amount")
+            .eq("trip_id", code);
+
+        const total    = (exps || []).reduce((s, e) => s + parseFloat(e.amount), 0);
+        const expCount = (exps || []).length;
+
+        list.insertAdjacentHTML("beforeend", `
+            <div class="group-card" id="gcard-${escHtml(code)}">
+                <div class="group-card-left" onclick="enterTrip('${escHtml(code)}')">
+                    <div class="group-card-name">${escHtml(code)}</div>
+                    <div class="group-card-meta">${expCount} expense${expCount !== 1 ? "s" : ""} · $${total.toFixed(2)} total</div>
+                </div>
+                <div class="group-card-right">
+                    ${isCreator ? `<span class="creator-badge">Creator</span>` : ""}
+                    <div class="group-actions">
+                        <button class="icon-btn enter" title="Open trip" onclick="enterTrip('${escHtml(code)}')">→</button>
+                        ${isCreator
+                            ? `<button class="icon-btn delete" title="Delete trip" onclick="promptDeleteTrip('${escHtml(code)}')">🗑</button>`
+                            : `<button class="icon-btn leave"  title="Leave trip"  onclick="promptLeaveTrip('${escHtml(code)}')">✕</button>`
+                        }
+                    </div>
+                </div>
+            </div>`);
+    }
+}
+
+// ── Create trip ──────────────────────────────────────────────────
+document.getElementById("btn-create-trip").onclick = async () => {
+    const code = document.getElementById("new-trip-code").value.trim().toUpperCase().replace(/\s+/g, "");
+    if (!code) { toast("Enter a trip code."); return; }
+
+    // 1. Insert into trips table
+    const { data: tripRow, error: tripErr } = await sb
+        .from("trips")
+        .insert({ trip_code: code, creator_id: currentSession.user.id, require_payment: false })
+        .select()
+        .single();
+
+    if (tripErr) { toast("⚠️ " + tripErr.message); return; }
+
+    // 2. Add creator to trip_members
+    const { error: memErr } = await sb
+        .from("trip_members")
+        .insert({ trip_id: tripRow.id, user_id: currentSession.user.id });
+
+    if (memErr) { toast("⚠️ " + memErr.message); return; }
+
+    document.getElementById("new-trip-code").value = "";
+    document.getElementById("new-trip-name").value = "";
+    toast(`✓ Trip ${code} created`);
+    loadGroups();
+};
+
+// ── Join trip ────────────────────────────────────────────────────
+document.getElementById("btn-join-trip").onclick = async () => {
+    const code = document.getElementById("join-trip-code").value.trim().toUpperCase();
+    if (!code) { toast("Enter a trip code."); return; }
+
+    // Look up the trip
+    const { data: tripRow, error: lookupErr } = await sb
+        .from("trips")
+        .select("id, trip_code")
+        .eq("trip_code", code)
+        .single();
+
+    if (lookupErr || !tripRow) { toast("⚠️ Trip not found. Check the code."); return; }
+
+    // Add to trip_members (ignore duplicate error)
+    const { error: memErr } = await sb
+        .from("trip_members")
+        .insert({ trip_id: tripRow.id, user_id: currentSession.user.id });
+
+    if (memErr && !memErr.message.includes("duplicate")) {
+        toast("⚠️ " + memErr.message); return;
+    }
+
+    document.getElementById("join-trip-code").value = "";
+    toast(`✓ Joined ${code}`);
+    loadGroups();
+};
+
+// ── Leave trip ───────────────────────────────────────────────────
+function promptLeaveTrip(code) {
+    confirm(
+        "Leave trip?",
+        `You'll be removed from ${code}. Your expenses will remain visible to other members.`,
+        () => leaveTrip(code)
+    );
+}
+
+async function leaveTrip(code) {
+    // Resolve trip uuid from code
+    const { data: tripRow } = await sb.from("trips").select("id").eq("trip_code", code).single();
+    if (!tripRow) { toast("⚠️ Trip not found."); return; }
+
+    const { error } = await sb
+        .from("trip_members")
+        .delete()
+        .eq("trip_id",  tripRow.id)
+        .eq("user_id",  currentSession.user.id);
+
+    if (error) { toast("⚠️ " + error.message); return; }
+    toast(`Left ${code}`);
+    loadGroups();
+}
+
+// ── Delete trip (creator only) ───────────────────────────────────
+function promptDeleteTrip(code) {
+    confirm(
+        "Delete trip?",
+        `This will permanently delete ${code} and ALL its expenses for everyone. This cannot be undone.`,
+        () => deleteTrip(code)
+    );
+}
+
+async function deleteTrip(code) {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(`${TRIPS_API}/${code}`, {
+        method:  "DELETE",
+        headers: { "Authorization": `Bearer ${session.access_token}` }
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast("⚠️ " + (err.detail || "Delete failed")); return;
+    }
+    toast(`Trip ${code} deleted`);
+    loadGroups();
+}
+
+// ── Enter trip → dashboard ───────────────────────────────────────
+async function enterTrip(code) {
+    currentTripId = code;
+    document.getElementById("display-trip-id").textContent = code;
+    showScreen("app-screen");
+    fetchExpenses();
+}
+
+document.getElementById("btn-back").onclick = () => {
+    currentTripId  = null;
+    currentTripRow = null;
+    if (myChart) { myChart.destroy(); myChart = null; }
+    showScreen("groups-screen");
+    loadGroups();
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  EXPENSES — FETCH & RENDER
+// ══════════════════════════════════════════════════════════════════
 async function fetchExpenses() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return; // guard
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !currentTripId) return;
 
     try {
         const res = await fetch(`${API_URL}/${currentTripId}`, {
@@ -542,18 +776,14 @@ async function fetchExpenses() {
 }
 
 function renderUI(expenses) {
-    const tableBody = document.getElementById("expense-table-body");
-    const settleList = document.getElementById("settle-up-list");
-    const summaryDiv = document.getElementById("category-summary");
+    const tableBody    = document.getElementById("expense-table-body");
+    const settleList   = document.getElementById("settle-up-list");
+    const summaryDiv   = document.getElementById("category-summary");
     const totalDisplay = document.getElementById("total-cost");
 
     tableBody.innerHTML = "";
     settleList.innerHTML = "";
     summaryDiv.innerHTML = "";
-
-    let total = 0;
-    let catTotals = {};  // { category: sum }
-    let balances  = {};  // { name: net }  positive = owed money, negative = owes money
 
     if (expenses.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div>✈️</div>No expenses yet — add one to get started.</div></td></tr>`;
@@ -562,21 +792,25 @@ function renderUI(expenses) {
         return;
     }
 
+    let total     = 0;
+    let catTotals = {};
+    // balances[name] = { paid: X, owed: Y }  →  net = paid - owed
+    let balances  = {};
+
     expenses.forEach(exp => {
         const amt      = parseFloat(exp.amount);
-        const splits   = parseInt(exp.split_count) || 1;   // ← use actual split_count, not hardcoded 3
+        const splits   = parseInt(exp.split_count) || 1;
         const perPerson = amt / splits;
 
         total += amt;
         catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
 
-        // Payer: paid full amount, owes their share → net = amt - perPerson
-        balances[exp.paid_by] = (balances[exp.paid_by] || 0) + amt - perPerson;
-        // Everyone else: owes their share (we don't know their names from this data,
-        // so net per person is tracked when they appear as paid_by in other expenses)
+        // Payer paid the full amount and owes their share
+        if (!balances[exp.paid_by]) balances[exp.paid_by] = { paid: 0, owed: 0 };
+        balances[exp.paid_by].paid += amt;
+        balances[exp.paid_by].owed += perPerson;
 
         const catClass = `tag-${exp.category}`;
-        // id is int8 from Supabase — store as number attribute, pass as number to delete
         tableBody.insertAdjacentHTML("beforeend", `
             <tr data-id="${exp.id}">
                 <td>
@@ -607,64 +841,55 @@ function renderUI(expenses) {
             </div>`);
     }
 
-    // ── Balance cards (both owed AND owes) ──
-    const entries = Object.entries(balances).filter(([, v]) => Math.abs(v) > 0.005);
+    // ── Balance sheet — net per person ──────────────────────────
+    // net > 0  → they paid more than they owe → others owe them
+    // net < 0  → they paid less than they owe → they owe others
+    // net = 0  → all square
+    const entries = Object.entries(balances)
+        .map(([name, b]) => ({ name, net: b.paid - b.owed }))
+        .sort((a, b) => b.net - a.net);
+
     if (entries.length === 0) {
-        settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">All settled up!</div>`;
+        settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">No data.</div>`;
     } else {
-        entries.forEach(([person, bal]) => {
-            const isOwed = bal > 0;
+        entries.forEach(({ name, net }) => {
+            const absNet = Math.abs(net);
+            let cls, label, valStr;
+
+            if (absNet < 0.01) {
+                cls    = "even";
+                label  = "Settled";
+                valStr = "—";
+            } else if (net > 0) {
+                cls    = "owed";
+                label  = "is owed";
+                valStr = `+$${absNet.toFixed(2)}`;
+            } else {
+                cls    = "owes";
+                label  = "owes";
+                valStr = `-$${absNet.toFixed(2)}`;
+            }
+
             settleList.insertAdjacentHTML("beforeend", `
-                <div class="balance-card ${isOwed ? "owed" : "owes"}">
-                    <span class="name">${escHtml(person)}</span>
-                    <span class="val">${isOwed ? "+" : ""}$${Math.abs(bal).toFixed(2)}</span>
+                <div class="balance-card ${cls}">
+                    <div>
+                        <div class="bname">${escHtml(name)}</div>
+                        <div class="bsub">${label}</div>
+                    </div>
+                    <span class="bval">${valStr}</span>
                 </div>`);
         });
     }
-
-    // ── Payout deep links ──
-    renderPayouts(balances);
 }
 
-function renderPayouts(balances) {
-    if (!PAYOUT_HANDLES) return;
-    const section  = document.getElementById("payout-section");
-    const linksDiv = document.getElementById("payout-links");
-    linksDiv.innerHTML = "";
-
-    // Show links for people who are OWED (others need to pay them)
-    const owed = Object.entries(balances).filter(([, v]) => v > 0.005);
-    if (owed.length === 0) { section.style.display = "none"; return; }
-
-    owed.forEach(([person, amt]) => {
-        const handles = PAYOUT_HANDLES[person];
-        if (!handles) return;
-        const fixedAmt = amt.toFixed(2);
-
-        if (handles.venmo) {
-            const url = `https://venmo.com/?txn=pay&audience=private&recipients=${encodeURIComponent(handles.venmo)}&amount=${fixedAmt}&note=RoamBudget`;
-            linksDiv.insertAdjacentHTML("beforeend", `<a href="${url}" target="_blank" class="payout-btn">💙 Venmo ${person}</a>`);
-        }
-        if (handles.cashapp) {
-            const handle = handles.cashapp.startsWith("$") ? handles.cashapp.slice(1) : handles.cashapp;
-            const url = `https://cash.app/$${handle}/${fixedAmt}`;
-            linksDiv.insertAdjacentHTML("beforeend", `<a href="${url}" target="_blank" class="payout-btn">💚 Cash App</a>`);
-        }
-    });
-
-    section.style.display = linksDiv.children.length > 0 ? "block" : "none";
-}
-
-// ── CHART (position-independent color mapping) ──────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  CHART
+// ══════════════════════════════════════════════════════════════════
 function updateChart(catTotals) {
     const ctx = document.getElementById("budgetChart").getContext("2d");
     if (myChart) { myChart.destroy(); myChart = null; }
-
     const labels = Object.keys(catTotals);
-    if (labels.length === 0) return;
-
-    // Map colors by label, not by array position
-    const colors = labels.map(l => CAT_COLORS[l] || "#94a3b8");
+    if (!labels.length) return;
 
     myChart = new Chart(ctx, {
         type: "doughnut",
@@ -672,7 +897,7 @@ function updateChart(catTotals) {
             labels,
             datasets: [{
                 data: Object.values(catTotals),
-                backgroundColor: colors,
+                backgroundColor: labels.map(l => CAT_COLORS[l] || "#94a3b8"),
                 borderWidth: 0,
                 hoverOffset: 8,
             }]
@@ -684,13 +909,9 @@ function updateChart(catTotals) {
                 legend: {
                     position: "bottom",
                     labels: {
-                        boxWidth: 7,
-                        boxHeight: 7,
-                        borderRadius: 3,
-                        useBorderRadius: true,
+                        boxWidth: 7, boxHeight: 7, borderRadius: 3, useBorderRadius: true,
                         font: { size: 9, weight: "600", family: "DM Sans" },
-                        padding: 10,
-                        color: "#6b7280",
+                        padding: 10, color: "#6b7280",
                     }
                 }
             },
@@ -699,14 +920,15 @@ function updateChart(catTotals) {
     });
 }
 
-// ── ADD EXPENSE ─────────────────────────────────────────────────────
-document.getElementById("expense-form").addEventListener("submit", async e => {
+// ══════════════════════════════════════════════════════════════════
+//  ADD EXPENSE
+// ══════════════════════════════════════════════════════════════════
+document.getElementById("expense-form").onsubmit = async e => {
     e.preventDefault();
     const btn = document.getElementById("btn-submit");
-    btn.disabled = true;
-    btn.textContent = "Posting…";
+    btn.disabled = true; btn.textContent = "Posting…";
 
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (!session) { toast("Not signed in."); btn.disabled = false; btn.textContent = "Add to Trip"; return; }
 
     const payload = {
@@ -721,10 +943,7 @@ document.getElementById("expense-form").addEventListener("submit", async e => {
     try {
         const res = await fetch(API_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${session.access_token}`
-            },
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
             body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error(`Server error ${res.status}`);
@@ -734,20 +953,18 @@ document.getElementById("expense-form").addEventListener("submit", async e => {
     } catch (err) {
         toast("⚠️ " + err.message);
     } finally {
-        btn.disabled = false;
-        btn.textContent = "Add to Trip";
+        btn.disabled = false; btn.textContent = "Add to Trip";
     }
-});
+};
 
-// ── DELETE EXPENSE ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  DELETE EXPENSE
+// ══════════════════════════════════════════════════════════════════
 async function deleteExpense(id) {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-
-    // Optimistic: remove row immediately
     const row = document.querySelector(`tr[data-id="${id}"]`);
     if (row) row.style.opacity = "0.3";
-
     try {
         const res = await fetch(`${API_URL}/${id}`, {
             method: "DELETE",
@@ -762,16 +979,18 @@ async function deleteExpense(id) {
     }
 }
 
-// ── UTIL ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  UTIL
+// ══════════════════════════════════════════════════════════════════
 function escHtml(str) {
     return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// ── KICK OFF ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════════════════
 init();
 </script>
 </body>
