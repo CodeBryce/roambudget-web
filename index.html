@@ -470,7 +470,7 @@
 //  CONFIG  —  replace with your real values
 // ══════════════════════════════════════════════════════════════════
 const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";   // ← replace
+const SB_KEY  = "YOUR_SUPABASE_ANON_KEY";   // ← replace
 const API_URL = "https://roambudget-server.onrender.com/expenses";
 const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
@@ -587,7 +587,7 @@ async function loadGroups() {
     if (!currentSession) return;
     const { data, error } = await sb
         .from("trip_members")
-        .select("trip_id, trips(id, trip_code, creator_id)")
+        .select("trip_id, trips(id, trip_code, name, creator_id)")
         .eq("user_id", currentSession.user.id);
 
     const list = document.getElementById("groups-list");
@@ -605,8 +605,10 @@ async function loadGroups() {
     list.innerHTML = "";
     for (const row of data) {
         const trip       = row.trips;
-        const isCreator  = trip.creator_id === currentSession.user.id;
-        const code       = trip.trip_code;
+        const isCreator   = trip.creator_id === currentSession.user.id;
+        const code        = trip.trip_code;
+        // Show friendly name if set, fall back to trip_code
+        const displayName = (trip.name && trip.name.trim()) ? trip.name.trim() : code;
 
         // Fetch expense count + total for this trip to show in meta
         const { data: exps } = await sb
@@ -619,17 +621,17 @@ async function loadGroups() {
 
         list.insertAdjacentHTML("beforeend", `
             <div class="group-card" id="gcard-${escHtml(code)}">
-                <div class="group-card-left" onclick="enterTrip('${escHtml(code)}')">
-                    <div class="group-card-name">${escHtml(code)}</div>
-                    <div class="group-card-meta">${expCount} expense${expCount !== 1 ? "s" : ""} · $${total.toFixed(2)} total</div>
+                <div class="group-card-left" onclick="enterTrip('${escHtml(code)}', '${escHtml(displayName)}')">
+                    <div class="group-card-name">${escHtml(displayName)}</div>
+                    <div class="group-card-meta">${escHtml(code)} · ${expCount} expense${expCount !== 1 ? "s" : ""} · $${total.toFixed(2)} total</div>
                 </div>
                 <div class="group-card-right">
                     ${isCreator ? `<span class="creator-badge">Creator</span>` : ""}
                     <div class="group-actions">
-                        <button class="icon-btn enter" title="Open trip" onclick="enterTrip('${escHtml(code)}')">→</button>
+                        <button class="icon-btn enter" title="Open trip" onclick="enterTrip('${escHtml(code)}', '${escHtml(displayName)}')">→</button>
                         ${isCreator
-                            ? `<button class="icon-btn delete" title="Delete trip" onclick="promptDeleteTrip('${escHtml(code)}')">🗑</button>`
-                            : `<button class="icon-btn leave"  title="Leave trip"  onclick="promptLeaveTrip('${escHtml(code)}')">✕</button>`
+                            ? `<button class="icon-btn delete" title="Delete trip" onclick="promptDeleteTrip('${escHtml(code)}', '${escHtml(displayName)}')">🗑</button>`
+                            : `<button class="icon-btn leave"  title="Leave trip"  onclick="promptLeaveTrip('${escHtml(code)}', '${escHtml(displayName)}')">✕</button>`
                         }
                     </div>
                 </div>
@@ -640,12 +642,13 @@ async function loadGroups() {
 // ── Create trip ──────────────────────────────────────────────────
 document.getElementById("btn-create-trip").onclick = async () => {
     const code = document.getElementById("new-trip-code").value.trim().toUpperCase().replace(/\s+/g, "");
+    const name = document.getElementById("new-trip-name").value.trim();
     if (!code) { toast("Enter a trip code."); return; }
 
     // 1. Insert into trips table
     const { data: tripRow, error: tripErr } = await sb
         .from("trips")
-        .insert({ trip_code: code, creator_id: currentSession.user.id, require_payment: false })
+        .insert({ trip_code: code, name: name || null, creator_id: currentSession.user.id, require_payment: false })
         .select()
         .single();
 
@@ -693,10 +696,11 @@ document.getElementById("btn-join-trip").onclick = async () => {
 };
 
 // ── Leave trip ───────────────────────────────────────────────────
-function promptLeaveTrip(code) {
+function promptLeaveTrip(code, displayName) {
+    const label = displayName || code;
     confirm(
         "Leave trip?",
-        `You'll be removed from ${code}. Your expenses will remain visible to other members.`,
+        `You'll be removed from "${label}". Your expenses will remain visible to other members.`,
         () => leaveTrip(code)
     );
 }
@@ -718,10 +722,11 @@ async function leaveTrip(code) {
 }
 
 // ── Delete trip (creator only) ───────────────────────────────────
-function promptDeleteTrip(code) {
+function promptDeleteTrip(code, displayName) {
+    const label = displayName || code;
     confirm(
         "Delete trip?",
-        `This will permanently delete ${code} and ALL its expenses for everyone. This cannot be undone.`,
+        `This will permanently delete "${label}" and ALL its expenses for everyone. This cannot be undone.`,
         () => deleteTrip(code)
     );
 }
@@ -741,9 +746,9 @@ async function deleteTrip(code) {
 }
 
 // ── Enter trip → dashboard ───────────────────────────────────────
-async function enterTrip(code) {
+async function enterTrip(code, displayName) {
     currentTripId = code;
-    document.getElementById("display-trip-id").textContent = code;
+    document.getElementById("display-trip-id").textContent = displayName || code;
     showScreen("app-screen");
     fetchExpenses();
 }
