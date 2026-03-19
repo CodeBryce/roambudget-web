@@ -19,9 +19,10 @@
 </head>
 <body class="p-4 md:p-8">
 
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white">
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white text-center p-6">
         <div class="spinner mb-4"></div>
         <p class="font-bold tracking-wide animate-pulse">Syncing Cloud Data...</p>
+        <p class="text-[10px] opacity-60 mt-1 uppercase">Waking up Render server (Free Tier)</p>
     </div>
 
     <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -29,14 +30,14 @@
             <h2 class="text-2xl font-black text-slate-900 mb-2">My Profile</h2>
             <div class="space-y-4 mt-4">
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Display Name (Who Paid)</label>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Display Name (Exact Name for Split)</label>
                     <input type="text" id="profile-name" placeholder="e.g. Bryce" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Venmo Username (Optional)</label>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Venmo Username (No @)</label>
                     <input type="text" id="profile-venmo" placeholder="e.g. Bryce-Davis-1" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                 </div>
-                <button id="btn-save-profile" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Save & Close</button>
+                <button id="btn-save-profile" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Save Profile</button>
             </div>
         </div>
     </div>
@@ -139,6 +140,7 @@
         let myChart = null;
         let currentTripId = localStorage.getItem('active_trip_id');
 
+        // Local State
         let myDisplayName = localStorage.getItem('profile_name') || "";
         let myVenmoHandle = localStorage.getItem('profile_venmo') || "";
 
@@ -146,7 +148,7 @@
             document.getElementById('loading-overlay').classList.toggle('hidden', !show);
         }
 
-        // --- PROFILE MODAL LOGIC ---
+        // --- PROFILE LOGIC ---
         document.getElementById('btn-open-profile').onclick = () => {
             document.getElementById('profile-name').value = myDisplayName;
             document.getElementById('profile-venmo').value = myVenmoHandle;
@@ -162,7 +164,7 @@
             location.reload();
         };
 
-        // --- AUTH & NAV ---
+        // --- AUTH & NAVIGATION ---
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
@@ -232,11 +234,11 @@
 
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr class="group hover:bg-slate-50 transition">
-                        <td class="p-5"><div class="font-black text-slate-800">${exp.item_name}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Paid By ${payer}</div></td>
-                        <td class="p-5 text-center"><span class="px-3 py-1 text-[9px] bg-slate-50 border border-slate-200 text-slate-500 rounded-full font-black uppercase tracking-tighter">${exp.category}</span></td>
+                        <td class="p-5 font-bold">${exp.item_name}<br><span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest italic">Paid By ${payer}</span></td>
+                        <td class="p-5 text-center"><span class="px-3 py-1 text-[9px] bg-white border border-slate-200 text-slate-500 rounded-full font-black uppercase tracking-tighter">${exp.category}</span></td>
                         <td class="p-5 text-right font-black text-slate-900">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button></td>
+                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 scale-125 px-2 transition">🗑️</button></td>
                     </tr>`);
             });
 
@@ -256,16 +258,15 @@
                         </div>
                         <div class="flex justify-between items-center mt-1">
                             <span class="text-[9px] font-black uppercase opacity-60 italic">${isOwed ? 'Is Owed' : 'Owes Group'}</span>
-                            ${isOwed ? `<button onclick="openVenmo('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white text-slate-800 px-3 py-1 rounded-lg shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay via Venmo</button>` : ''}
+                            ${isOwed ? `<button onclick="payUser('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white text-slate-800 px-3 py-1 rounded-lg shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay via Venmo</button>` : ''}
                         </div>
                     </div>`;
             }
         }
 
-        // --- VENMO DEEP LINK LOGIC ---
-        function openVenmo(name, amt) {
-            // Note: In a shared trip, we'd ideally fetch the recipient's handle from a database.
-            // For now, if the 'name' matches your saved profile name, we use your saved handle.
+        // --- UPDATED VENMO LOGIC ---
+        function payUser(name, amt) {
+            // Using the Universal Web Link which is more reliable for Mobile Web
             let handle = (name === myDisplayName) ? myVenmoHandle : "";
             
             if (!handle) {
@@ -273,15 +274,15 @@
             }
 
             if (handle) {
-                const venmoUrl = `venmo://paycharge?txn=pay&recipients=${handle}&amount=${amt.toFixed(2)}&note=RoamBudget:%20Settling%20Up`;
-                window.location.href = venmoUrl;
+                // Universal Venmo Web Link: https://venmo.com/<username>
+                // This will open the app if installed, or the website if not.
+                const venmoUrl = `https://venmo.com/${handle}`;
                 
-                // Fallback for desktop/if app doesn't open
-                setTimeout(() => {
-                    if (confirm("Venmo app didn't open. Switch to web version?")) {
-                        window.open(`https://venmo.com/${handle}`, '_blank');
-                    }
-                }, 1500);
+                // Copy amount to clipboard for easy pasting
+                navigator.clipboard.writeText(amt.toFixed(2));
+                alert(`Opening Venmo for ${handle}.\nAmount ($${amt.toFixed(2)}) copied to clipboard!`);
+                
+                window.location.href = venmoUrl;
             }
         }
 
@@ -316,6 +317,7 @@
                 })
             });
             e.target.reset(); btn.disabled = false; btn.innerText = "Add to Trip";
+            if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
             checkUserSession();
         };
 
