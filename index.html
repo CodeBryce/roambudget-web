@@ -48,8 +48,8 @@
                     <h1 class="text-4xl font-black text-slate-900 tracking-tight">RoamBudget</h1>
                     <div class="flex items-center gap-2 mt-1">
                         <span id="display-trip-id" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded font-bold text-xs uppercase tracking-tighter"></span>
-                        <button id="btn-change-trip" class="text-[10px] text-slate-400 font-bold uppercase hover:text-indigo-600 underline">Switch Trip</button>
-                        <button id="btn-logout" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest border-l pl-2">Sign Out</button>
+                        <button id="btn-change-trip" class="text-[10px] text-slate-400 font-bold uppercase hover:text-indigo-600 underline transition">Switch Trip</button>
+                        <button id="btn-logout" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest border-l pl-2 transition">Sign Out</button>
                     </div>
                 </div>
                 <div class="bg-indigo-600 text-white p-6 rounded-3xl shadow-2xl text-center min-w-[260px]">
@@ -105,61 +105,75 @@
     </div>
 
     <script>
+        // --- 1. CONFIGURATION ---
         const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; 
-        const SB_KEY = "YOUR_ANON_KEY_HERE"; 
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
         const API_URL = "https://roambudget-server.onrender.com/expenses"; 
 
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         let myChart = null;
         let currentTripId = localStorage.getItem('active_trip_id');
 
-        // --- AUTH & NAVIGATION ---
+        // --- 2. AUTH & NAVIGATION ---
         async function checkUserSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            // Toggle Auth Card
             document.getElementById('auth-container').classList.toggle('hidden', !!session);
             
             if (session) {
                 if (currentTripId) {
-                    showDashboard(session);
+                    // Show Dashboard
+                    document.getElementById('trip-selection-container').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    document.getElementById('display-trip-id').innerText = `TRIP: ${currentTripId}`;
+                    document.getElementById('user-email').innerText = session.user.email;
+                    fetchExpenses(session.access_token);
                 } else {
+                    // Show Trip Selection
+                    document.getElementById('app-container').classList.add('hidden');
                     document.getElementById('trip-selection-container').classList.remove('hidden');
                 }
             } else {
+                // Completely logged out
                 document.getElementById('app-container').classList.add('hidden');
                 document.getElementById('trip-selection-container').classList.add('hidden');
             }
         }
+
+        // Fix: Explicit Sign Out Listener
+        document.getElementById('btn-logout').onclick = async () => {
+            const { error } = await supabaseClient.auth.signOut();
+            if (!error) {
+                localStorage.removeItem('active_trip_id');
+                currentTripId = null;
+                window.location.reload();
+            }
+        };
+
+        document.getElementById('btn-change-trip').onclick = () => {
+            localStorage.removeItem('active_trip_id');
+            currentTripId = null;
+            window.location.reload();
+        };
 
         document.getElementById('trip-id-form').onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('input-trip-id').value.trim().toUpperCase();
             localStorage.setItem('active_trip_id', id);
             currentTripId = id;
-            location.reload(); // Refresh to trigger dashboard load
+            checkUserSession();
         };
 
-        document.getElementById('btn-change-trip').onclick = () => {
-            localStorage.removeItem('active_trip_id');
-            location.reload();
-        };
-
-        function showDashboard(session) {
-            document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('display-trip-id').innerText = `TRIP: ${currentTripId}`;
-            document.getElementById('user-email').innerText = session.user.email;
-            fetchExpenses(session.access_token);
-        }
-
-        // --- FETCH & RENDER ---
+        // --- 3. FETCH & RENDER ---
         async function fetchExpenses(token) {
             try {
-                // Fetching from the new shared endpoint /expenses/{trip_id}
                 const response = await fetch(`${API_URL}/${currentTripId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
                 if (Array.isArray(data)) renderUI(data, token);
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("Fetch Error:", err); }
         }
 
         function renderUI(expenses, token) {
@@ -175,15 +189,23 @@
                 const perPerson = exp.amount / (exp.split_count || 1);
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr class="group hover:bg-slate-50 transition">
-                        <td class="p-5"><div class="font-bold text-slate-800">${exp.item_name}</div><div class="text-[10px] text-slate-400 font-bold uppercase italic">By ${exp.paid_by}</div></td>
-                        <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase">${exp.category}</span></td>
+                        <td class="p-5">
+                            <div class="font-bold text-slate-800">${exp.item_name}</div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase italic text-xs tracking-tighter">Paid By ${exp.paid_by}</div>
+                        </td>
+                        <td class="p-5 text-center"><span class="px-3 py-1 text-[10px] bg-white border border-slate-200 text-slate-600 rounded-full font-bold uppercase shadow-sm">${exp.category}</span></td>
                         <td class="p-5 text-right font-black text-slate-700">$${exp.amount.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125">🗑️</button></td>
+                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button></td>
                     </tr>`);
             });
             totalDisplay.innerText = `$${total.toFixed(2)}`;
             updateChart(catTotals);
+
+            // Re-add category chips for visual summary
+            for (const [cat, sum] of Object.entries(catTotals)) {
+                summaryDiv.innerHTML += `<div class="bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span></div>`;
+            }
         }
 
         function updateChart(catTotals) {
@@ -193,33 +215,42 @@
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(catTotals),
-                    datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0 }]
+                    datasets: [{ data: Object.values(catTotals), backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'], borderWidth: 0, hoverOffset: 15 }]
                 },
                 options: { plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } } } }, cutout: '75%' }
             });
         }
 
+        // --- 4. DATA ACTIONS ---
         document.getElementById('expense-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Syncing...";
+            
             const { data: { session } } = await supabaseClient.auth.getSession();
+            
             const payload = {
                 item_name: document.getElementById('item_name').value,
                 amount: parseFloat(document.getElementById('amount').value),
                 category: document.getElementById('category').value,
                 paid_by: document.getElementById('paid_by').value,
                 split_count: parseInt(document.getElementById('split_count').value),
-                trip_id: currentTripId // Pass the shared Trip ID
+                trip_id: currentTripId 
             };
-            await fetch(API_URL, {
+
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                 body: JSON.stringify(payload)
             });
-            e.target.reset();
+
+            if (response.ok) {
+                e.target.reset();
+                fetchExpenses(session.access_token);
+            } else {
+                alert("Error saving expense. Verify your Trip ID column in Supabase.");
+            }
             btn.disabled = false; btn.innerText = "Add to Trip";
-            fetchExpenses(session.access_token);
         };
 
         async function deleteExp(id, token) {
@@ -230,8 +261,24 @@
 
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
-            await supabaseClient.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
-            checkUserSession();
+            const { error } = await supabaseClient.auth.signInWithPassword({ 
+                email: document.getElementById('email').value, 
+                password: document.getElementById('password').value 
+            });
+            if (error) {
+                document.getElementById('auth-msg').innerText = error.message;
+            } else {
+                checkUserSession();
+            }
+        };
+
+        document.getElementById('btn-signup').onclick = async () => {
+            const { error } = await supabaseClient.auth.signUp({ 
+                email: document.getElementById('email').value, 
+                password: document.getElementById('password').value 
+            });
+            if (error) document.getElementById('auth-msg').innerText = error.message;
+            else alert("Account created! You can now log in.");
         };
 
         checkUserSession();
