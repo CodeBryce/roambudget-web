@@ -324,6 +324,85 @@
             font-weight: 600; cursor: pointer; transition: opacity 0.15s;
         }
         .confirm-ok:hover { opacity: 0.85; }
+
+        /* ── Profile Setup Screen ────────────────────── */
+        #profile-screen {
+            align-items: center; justify-content: center;
+            background: var(--bg); z-index: 45;
+        }
+        .profile-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 36px 32px; width: 360px;
+            animation: slideUp 0.35s ease-out both;
+        }
+        .profile-card h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
+        .profile-card p  { color: var(--muted); font-size: 13px; margin: 0 0 20px; line-height: 1.5; }
+        .avatar-preview {
+            width: 64px; height: 64px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 700; color: #fff;
+            margin: 0 auto 20px; letter-spacing: -0.5px;
+            background: var(--color-lodging);
+            transition: background 0.2s;
+        }
+        .color-swatches {
+            display: flex; gap: 8px; justify-content: center;
+            margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .swatch {
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+        }
+        .swatch:hover  { transform: scale(1.2); }
+        .swatch.active { border-color: var(--text); transform: scale(1.15); }
+
+        /* ── Profile edit modal ──────────────────────── */
+        #profile-modal {
+            position: fixed; inset: 0; z-index: 160; background: rgba(0,0,0,0.35);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #profile-modal.hidden { display: none; }
+        .profile-modal-card {
+            background: var(--card); border-radius: 16px; padding: 28px 26px;
+            width: 320px; animation: slideUp 0.2s ease-out both;
+        }
+        .profile-modal-card h3 { font-size: 15px; font-weight: 600; margin: 0 0 16px; }
+
+        /* ── Profile button in header ────────────────── */
+        .profile-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: #fff;
+            border: none; cursor: pointer; flex-shrink: 0;
+            background: var(--color-lodging);
+            transition: opacity 0.15s;
+        }
+        .profile-btn:hover { opacity: 0.85; }
+
+        /* ── Member strip in dashboard ───────────────── */
+        .member-strip-label {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--subtle); white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .member-strip {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .member-chip {
+            display: flex; align-items: center; gap: 5px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 3px 10px 3px 4px;
+            font-size: 11px; font-weight: 500; color: var(--text);
+        }
+        .member-chip.you {
+            border-color: #a5b4fc; background: #eef2ff; color: var(--color-lodging);
+        }
+        .member-avatar {
+            width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -513,7 +592,7 @@
 //  CONFIG  —  replace with your real values
 // ══════════════════════════════════════════════════════════════════
 const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY  = "YOUR_SUPABASE_ANON_KEY";   // ← replace
+const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";   // ← replace
 const API_URL = "https://roambudget-server.onrender.com/expenses";
 const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
