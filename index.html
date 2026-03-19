@@ -576,6 +576,7 @@ function renderUI(expenses) {
         // so net per person is tracked when they appear as paid_by in other expenses)
 
         const catClass = `tag-${exp.category}`;
+        // id is int8 from Supabase — store as number attribute, pass as number to delete
         tableBody.insertAdjacentHTML("beforeend", `
             <tr data-id="${exp.id}">
                 <td>
@@ -588,7 +589,7 @@ function renderUI(expenses) {
                     <div class="exp-split">$${perPerson.toFixed(2)} / person</div>
                 </td>
                 <td style="text-align:right;">
-                    <button class="delete-btn" onclick="deleteExpense('${exp.id}')" title="Delete expense">✕</button>
+                    <button class="delete-btn" onclick="deleteExpense(${exp.id})" title="Delete expense">✕</button>
                 </td>
             </tr>`);
     });
