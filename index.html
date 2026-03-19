@@ -27,15 +27,14 @@
     <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl auth-card">
             <h2 class="text-2xl font-black text-slate-900 mb-2">My Profile</h2>
-            <p class="text-slate-500 text-xs font-medium mb-6 uppercase tracking-widest">Payout Settings</p>
-            <div class="space-y-4">
+            <div class="space-y-4 mt-4">
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Display Name (Used in app)</label>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Display Name (Who Paid)</label>
                     <input type="text" id="profile-name" placeholder="e.g. Bryce" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Zelle Email or Phone</label>
-                    <input type="text" id="profile-payment" placeholder="name@email.com" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Venmo Username (Optional)</label>
+                    <input type="text" id="profile-venmo" placeholder="e.g. Bryce-Davis-1" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                 </div>
                 <button id="btn-save-profile" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Save & Close</button>
             </div>
@@ -47,7 +46,7 @@
         <div id="auth-container" class="auth-card bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md mx-auto mt-20">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-indigo-600 tracking-tight">✈️ RoamBudget</h2>
-                <p class="text-slate-500 mt-2 text-sm font-medium italic">Sign in to start tracking.</p>
+                <p class="text-slate-500 mt-2 text-sm font-medium">Shared Trip Expense Tracker</p>
             </div>
             <form id="auth-form" class="space-y-4">
                 <input type="email" id="email" placeholder="Email" required class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
@@ -62,7 +61,7 @@
             <h2 class="text-2xl font-bold text-slate-800 mb-2 text-center">Select a Trip</h2>
             <form id="trip-id-form" class="space-y-4">
                 <input type="text" id="input-trip-id" placeholder="TRIP CODE" required class="w-full p-4 bg-slate-50 border-2 border-dashed rounded-xl outline-none focus:border-indigo-500 text-center font-bold uppercase tracking-widest">
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Enter Trip Dashboard</button>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-700 transition">Enter Dashboard</button>
             </form>
         </div>
 
@@ -86,14 +85,14 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <canvas id="budgetChart" class="max-h-[180px] mb-6"></canvas>
+                        <canvas id="budgetChart" class="max-h-[160px] mb-6"></canvas>
                         <hr class="mb-4 border-slate-100">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Balance Sheet</h3>
                         <div id="settle-up-list" class="space-y-3"></div>
                     </div>
 
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold mb-4">New Shared Expense</h3>
+                        <h3 class="text-lg font-bold mb-4">New Expense</h3>
                         <form id="expense-form" class="space-y-4">
                             <input type="text" id="item_name" placeholder="Item Name" required class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
                             <div class="grid grid-cols-2 gap-3">
@@ -132,7 +131,6 @@
     </div>
 
     <script>
-        // --- CONFIG ---
         const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co"; 
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
         const API_URL = "https://roambudget-server.onrender.com/expenses"; 
@@ -141,31 +139,27 @@
         let myChart = null;
         let currentTripId = localStorage.getItem('active_trip_id');
 
-        // Load profile handle from storage
         let myDisplayName = localStorage.getItem('profile_name') || "";
-        let myPaymentHandle = localStorage.getItem('profile_payment') || "";
+        let myVenmoHandle = localStorage.getItem('profile_venmo') || "";
 
         function toggleLoading(show) {
             document.getElementById('loading-overlay').classList.toggle('hidden', !show);
         }
 
-        // --- PROFILE LOGIC ---
+        // --- PROFILE MODAL LOGIC ---
         document.getElementById('btn-open-profile').onclick = () => {
             document.getElementById('profile-name').value = myDisplayName;
-            document.getElementById('profile-payment').value = myPaymentHandle;
+            document.getElementById('profile-venmo').value = myVenmoHandle;
             document.getElementById('profile-modal').classList.remove('hidden');
         };
 
         document.getElementById('btn-save-profile').onclick = () => {
             myDisplayName = document.getElementById('profile-name').value.trim();
-            myPaymentHandle = document.getElementById('profile-payment').value.trim();
+            myVenmoHandle = document.getElementById('profile-venmo').value.trim().replace('@', '');
             localStorage.setItem('profile_name', myDisplayName);
-            localStorage.setItem('profile_payment', myPaymentHandle);
+            localStorage.setItem('profile_venmo', myVenmoHandle);
             document.getElementById('profile-modal').classList.add('hidden');
-            // Auto-fill form name if it's empty
-            if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
-            alert("Settings Saved Locally!");
-            location.reload(); // Refresh to update balance logic
+            location.reload();
         };
 
         // --- AUTH & NAV ---
@@ -199,13 +193,11 @@
 
         document.getElementById('trip-id-form').onsubmit = (e) => {
             e.preventDefault();
-            const id = document.getElementById('input-trip-id').value.trim().toUpperCase();
-            localStorage.setItem('active_trip_id', id);
-            currentTripId = id;
-            checkUserSession();
+            localStorage.setItem('active_trip_id', document.getElementById('input-trip-id').value.trim().toUpperCase());
+            location.reload();
         };
 
-        // --- FETCH & RENDER ---
+        // --- DATA LOGIC ---
         async function fetchExpenses(token) {
             toggleLoading(true);
             try {
@@ -231,44 +223,31 @@
 
             expenses.forEach(exp => {
                 const amt = parseFloat(exp.amount) || 0;
-                const splits = parseInt(exp.split_count) || 1;
-                const perPerson = amt / splits;
+                const perPerson = amt / (parseInt(exp.split_count) || 1);
                 const payer = exp.paid_by.trim();
 
                 grandTotal += amt;
                 catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
-
-                balances[payer] = (balances[payer] || 0) + amt;
-                balances[payer] -= perPerson; 
+                balances[payer] = (balances[payer] || 0) + amt - perPerson;
 
                 tableBody.insertAdjacentHTML('beforeend', `
-                    <tr class="group hover:bg-slate-50 transition font-medium text-slate-700">
-                        <td class="p-5">
-                            <div class="font-black text-slate-900">${exp.item_name}</div>
-                            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Paid By ${payer}</div>
-                        </td>
-                        <td class="p-5 text-center">
-                            <span class="px-3 py-1 text-[9px] bg-slate-50 border border-slate-200 text-slate-500 rounded-full font-black uppercase tracking-tighter">${exp.category}</span>
-                        </td>
+                    <tr class="group hover:bg-slate-50 transition">
+                        <td class="p-5"><div class="font-black text-slate-800">${exp.item_name}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Paid By ${payer}</div></td>
+                        <td class="p-5 text-center"><span class="px-3 py-1 text-[9px] bg-slate-50 border border-slate-200 text-slate-500 rounded-full font-black uppercase tracking-tighter">${exp.category}</span></td>
                         <td class="p-5 text-right font-black text-slate-900">$${amt.toFixed(2)}</td>
                         <td class="p-5 text-right text-indigo-600 font-black">$${perPerson.toFixed(2)}</td>
-                        <td class="p-5 text-center">
-                            <button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button>
-                        </td>
+                        <td class="p-5 text-center"><button onclick="deleteExp(${exp.id}, '${token}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition scale-125 px-2">🗑️</button></td>
                     </tr>`);
             });
 
             totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
             updateChart(catTotals);
 
-            // Render Balance Sheet with Copy-to-Clipboard logic
             for (const [person, bal] of Object.entries(balances)) {
                 if (Math.abs(bal) < 0.01) continue;
                 const isOwed = bal > 0;
                 const color = isOwed ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-rose-600 bg-rose-50 border-rose-100';
                 
-                // If I am looking at someone who is OWED, I want to pay them.
-                // We'll use their name as the handle for now unless you set up a global database of user handles.
                 settleList.innerHTML += `
                     <div class="flex flex-col p-4 rounded-2xl border ${color}">
                         <div class="flex justify-between items-center mb-1">
@@ -277,20 +256,33 @@
                         </div>
                         <div class="flex justify-between items-center mt-1">
                             <span class="text-[9px] font-black uppercase opacity-60 italic">${isOwed ? 'Is Owed' : 'Owes Group'}</span>
-                            ${isOwed ? `<button onclick="handleZelle('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white text-slate-800 px-3 py-1 rounded-lg shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay Info</button>` : ''}
+                            ${isOwed ? `<button onclick="openVenmo('${person}', ${Math.abs(bal)})" class="text-[9px] bg-white text-slate-800 px-3 py-1 rounded-lg shadow-sm font-black uppercase hover:bg-indigo-600 hover:text-white transition">Pay via Venmo</button>` : ''}
                         </div>
                     </div>`;
             }
-
-            for (const [cat, sum] of Object.entries(catTotals)) {
-                summaryDiv.innerHTML += `<div class="bg-white border rounded-full px-4 py-1.5 text-xs shadow-sm font-bold text-slate-600">${cat}: <span class="text-indigo-600">$${sum.toFixed(2)}</span></div>`;
-            }
         }
 
-        function handleZelle(name, amt) {
-            // For now, it copies the name. In a real app, we'd fetch that person's payment handle from Supabase.
-            navigator.clipboard.writeText(name);
-            alert(`"${name}" copied to clipboard!\n\nUse this name in Zelle/Venmo to send $${amt.toFixed(2)}`);
+        // --- VENMO DEEP LINK LOGIC ---
+        function openVenmo(name, amt) {
+            // Note: In a shared trip, we'd ideally fetch the recipient's handle from a database.
+            // For now, if the 'name' matches your saved profile name, we use your saved handle.
+            let handle = (name === myDisplayName) ? myVenmoHandle : "";
+            
+            if (!handle) {
+                handle = prompt(`Enter ${name}'s Venmo username (without @):`);
+            }
+
+            if (handle) {
+                const venmoUrl = `venmo://paycharge?txn=pay&recipients=${handle}&amount=${amt.toFixed(2)}&note=RoamBudget:%20Settling%20Up`;
+                window.location.href = venmoUrl;
+                
+                // Fallback for desktop/if app doesn't open
+                setTimeout(() => {
+                    if (confirm("Venmo app didn't open. Switch to web version?")) {
+                        window.open(`https://venmo.com/${handle}`, '_blank');
+                    }
+                }, 1500);
+            }
         }
 
         function updateChart(catTotals) {
@@ -311,40 +303,33 @@
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Syncing...";
             const { data: { session } } = await supabaseClient.auth.getSession();
-            const payload = {
-                item_name: document.getElementById('item_name').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                category: document.getElementById('category').value,
-                paid_by: document.getElementById('paid_by').value,
-                split_count: parseInt(document.getElementById('split_count').value),
-                trip_id: currentTripId 
-            };
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    item_name: document.getElementById('item_name').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    category: document.getElementById('category').value,
+                    paid_by: document.getElementById('paid_by').value,
+                    split_count: parseInt(document.getElementById('split_count').value),
+                    trip_id: currentTripId 
+                })
             });
             e.target.reset(); btn.disabled = false; btn.innerText = "Add to Trip";
-            if (myDisplayName) document.getElementById('paid_by').value = myDisplayName;
-            fetchExpenses(session.access_token);
+            checkUserSession();
         };
 
         async function deleteExp(id, token) {
-            if (!confirm("Remove shared expense?")) return;
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-            fetchExpenses(token);
+            if (confirm("Remove expense?")) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                checkUserSession();
+            }
         }
 
         document.getElementById('auth-form').onsubmit = async (e) => {
             e.preventDefault();
             await supabaseClient.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
             checkUserSession();
-        };
-
-        document.getElementById('btn-signup').onclick = async () => {
-            const { error } = await supabaseClient.auth.signUp({ email: document.getElementById('email').value, password: document.getElementById('password').value });
-            if (error) alert(error.message);
-            else alert("Account created! Check email or login.");
         };
 
         checkUserSession();
