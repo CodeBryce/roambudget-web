@@ -656,6 +656,25 @@ document.getElementById("confirm-ok").onclick = () => {
     if (confirmCallback) { confirmCallback(); confirmCallback = null; }
 };
 
+
+// ══════════════════════════════════════════════════════════════════
+//  SYNC PROFILE → trip_members
+//  On every login, writes the current display_name + avatar_color
+//  to ALL trip_members rows for this user. Fixes stale/null rows
+//  that were created before the columns existed.
+// ══════════════════════════════════════════════════════════════════
+async function syncProfileToAllMemberships() {
+    if (!currentDisplayName || !currentSession) return;
+    await sb
+        .from("trip_members")
+        .update({
+            display_name: currentDisplayName,
+            avatar_color: currentAvatarColor,
+        })
+        .eq("user_id", currentSession.user.id);
+    // Silent — no toast needed, this is background housekeeping
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════════════
@@ -671,6 +690,7 @@ async function init() {
             initColorSwatches("setup");
             showScreen("profile-screen");
         } else {
+            syncProfileToAllMemberships();
             showScreen("groups-screen");
             loadGroups();
         }
@@ -705,6 +725,7 @@ document.getElementById("auth-submit").onclick = async () => {
         initColorSwatches("setup");
         showScreen("profile-screen");
     } else {
+        syncProfileToAllMemberships();
         showScreen("groups-screen");
         loadGroups();
     }
