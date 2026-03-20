@@ -28,185 +28,509 @@
             height: 100vh; overflow: hidden; margin: 0;
         }
 
-        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; transition: opacity 0.2s, transform 0.2s; }
+        /* ── Shared: screen base ─────────────────────── */
+        .screen {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            transition: opacity 0.2s, transform 0.2s;
+        }
         .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
 
-        #auth-screen { align-items: center; justify-content: center; background: var(--bg); z-index: 50; }
-        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; width: 360px; animation: slideUp 0.35s ease-out both; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-input { display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 13px; background: #f9fafb; outline: none; }
-        .auth-btn { width: 100%; padding: 10px; background: var(--color-lodging); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
+        /* ── Auth ────────────────────────────────────── */
+        #auth-screen {
+            align-items: center; justify-content: center;
+            background: var(--bg); z-index: 50;
+        }
+        .auth-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 36px 32px; width: 360px;
+            animation: slideUp 0.35s ease-out both;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .auth-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
+        .auth-card p  { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+        .auth-input {
+            display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px;
+            border: 1px solid var(--border); border-radius: 10px;
+            font-family: inherit; font-size: 13px; background: #f9fafb;
+            outline: none; transition: border-color 0.15s;
+        }
+        .auth-input:focus { border-color: var(--color-lodging); }
+        .auth-btn {
+            width: 100%; padding: 10px; background: var(--color-lodging); color: #fff;
+            border: none; border-radius: 10px; font-family: inherit;
+            font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+        }
+        .auth-btn:hover { background: #4f46e5; }
+        #auth-toggle { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--muted); cursor: pointer; }
+        #auth-toggle span { color: var(--color-lodging); text-decoration: underline; }
+        #auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; min-height: 16px; }
 
+        /* ── Groups Home ─────────────────────────────── */
         #groups-screen { background: var(--bg); padding: 0; z-index: 40; overflow-y: auto; }
-        .groups-inner { max-width: 560px; margin: 0 auto; padding: 48px 24px 40px; }
+        .groups-inner {
+            max-width: 560px; margin: 0 auto;
+            padding: 48px 24px 40px;
+        }
+        .groups-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px;
+        }
         .brand { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; font-style: italic; }
-        .group-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
-        .group-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.08); }
-        .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
-        .action-submit { width: 100%; padding: 8px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
-        .action-submit.secondary { background: #eef2ff; color: var(--color-lodging); }
+        .ghost-btn {
+            font-size: 11px; font-weight: 500; color: var(--subtle);
+            background: none; border: none; cursor: pointer;
+            font-family: inherit; transition: color 0.15s;
+        }
+        .ghost-btn:hover { color: #ef4444; }
 
-        #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; height: 100vh; display: flex; flex-direction: column; }
-        .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; }
-        
-        /* SIDEBAR FIXED HEIGHT LOGIC */
-        .sidebar { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
+        .groups-section-label {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--subtle); margin-bottom: 10px;
+        }
+
+        /* Group cards */
+        .group-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px; cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .group-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.08); }
+        .group-card-left { display: flex; flex-direction: column; gap: 3px; }
+        .group-card-name { font-size: 14px; font-weight: 600; letter-spacing: -0.1px; }
+        .group-card-meta { font-size: 11px; color: var(--muted); }
+        .group-card-right { display: flex; align-items: center; gap: 8px; }
+        .creator-badge {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; padding: 3px 7px; border-radius: 5px;
+            background: #eef2ff; color: var(--color-lodging);
+        }
+        .group-actions { display: flex; gap: 4px; }
+        .icon-btn {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border); background: var(--card);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: var(--muted); transition: all 0.15s;
+        }
+        .icon-btn:hover.leave  { border-color: #fca5a5; color: #ef4444; background: #fff1f2; }
+        .icon-btn:hover.delete { border-color: #fca5a5; color: #ef4444; background: #fff1f2; }
+        .icon-btn:hover.enter  { border-color: #a5b4fc; color: var(--color-lodging); background: #eef2ff; }
+
+        /* Create / Join trip forms */
+        .action-cards {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-top: 28px;
+        }
+        .action-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px;
+        }
+        .action-card h4 {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+        }
+        .action-input {
+            display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px;
+            border: 1px solid var(--border); border-radius: 9px;
+            font-family: inherit; font-size: 12px; background: #f9fafb;
+            outline: none; transition: border-color 0.15s; color: var(--text);
+        }
+        .action-input:focus { border-color: var(--color-lodging); }
+        .action-submit {
+            width: 100%; padding: 8px; background: var(--text); color: #fff;
+            border: none; border-radius: 9px; font-family: inherit;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+        }
+        .action-submit:hover { opacity: 0.8; }
+        .action-submit.secondary {
+            background: #eef2ff; color: var(--color-lodging);
+        }
+        .action-submit.secondary:hover { background: #e0e7ff; opacity: 1; }
+
+        .empty-groups {
+            text-align: center; padding: 32px 20px;
+            color: var(--subtle); font-size: 13px;
+        }
+        .empty-groups div { font-size: 28px; margin-bottom: 8px; }
+
+        /* ── Dashboard ───────────────────────────────── */
+        #app-screen { background: var(--bg); padding: 16px 20px; z-index: 30; }
+
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px; flex-shrink: 0;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 10px; }
+        .back-btn {
+            font-size: 11px; font-weight: 500; color: var(--muted);
+            background: none; border: 1px solid var(--border); border-radius: 8px;
+            padding: 4px 10px; cursor: pointer; font-family: inherit;
+            transition: all 0.15s;
+        }
+        .back-btn:hover { border-color: #a5b4fc; color: var(--color-lodging); }
+        .trip-badge {
+            font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+            background: #eef2ff; color: var(--color-lodging);
+            padding: 3px 8px; border-radius: 6px; letter-spacing: 0.04em;
+        }
+        .total-pill {
+            background: var(--text); color: #fff;
+            padding: 8px 18px; border-radius: 14px;
+            display: flex; flex-direction: column; align-items: flex-end;
+        }
+        .total-pill .label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
+        .total-pill .amount { font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
+
+        .grid-main {
+            display: grid; grid-template-columns: 300px 1fr;
+            gap: 14px; flex-grow: 1; min-height: 0;
+        }
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
-        
-        /* This card now handles the distribution of space */
-        .chart-card { 
-            padding: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 0; /* Allows card to shrink */
-            flex: 1; 
+        .chart-card { padding: 16px; flex-shrink: 0; }
+        .chart-wrap { height: 140px; display: flex; justify-content: center; }
+
+        .section-label {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--subtle); margin-bottom: 8px;
         }
-        .chart-wrap { height: 130px; display: flex; justify-content: center; flex-shrink: 0; }
-        
-        /* Balance list constrained so Post New Expense is never pushed */
-        .balance-list { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 5px; 
-            overflow-y: auto; 
-            flex-grow: 1;
-        }
+
+        /* Balance cards */
+        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; }
         .balance-list::-webkit-scrollbar { width: 3px; }
         .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-        .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
+        .balance-card {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 11px; border-radius: 10px; font-size: 11px;
+        }
         .balance-card.owed { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
         .balance-card.owes { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
         .balance-card.even { background: #f8fafc; border: 1px solid var(--border); color: var(--muted); }
+        .balance-card .bname { font-weight: 600; letter-spacing: 0.02em; }
+        .balance-card .bval  { font-family: 'DM Mono', monospace; font-size: 11px; }
+        .balance-card .bsub  { font-size: 9px; opacity: 0.7; }
 
-        /* The form card is now anchored */
-        .form-card { padding: 14px; flex-shrink: 0; margin-top: auto; }
-        .form-field { display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px; background: #f9fafb; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 12px; outline: none; }
-        .submit-btn { width: 100%; padding: 9px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
+        /* Form */
+        .form-card { padding: 14px; flex-shrink: 0; }
+        .form-card h3 { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+        .form-field {
+            display: block; width: 100%; padding: 8px 10px; margin-bottom: 8px;
+            background: #f9fafb; border: 1px solid var(--border); border-radius: 9px;
+            font-family: inherit; font-size: 12px; color: var(--text);
+            outline: none; transition: border-color 0.15s;
+        }
+        .form-field:focus { border-color: var(--color-lodging); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .form-grid .form-field { margin-bottom: 0; }
+        .submit-btn {
+            width: 100%; padding: 9px; background: var(--text); color: #fff;
+            border: none; border-radius: 9px; font-family: inherit;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+        }
+        .submit-btn:hover  { opacity: 0.85; }
+        .submit-btn:disabled { opacity: 0.45; cursor: default; }
 
+        /* Right col */
         .right-col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+        .cat-pills { display: flex; flex-wrap: wrap; gap: 7px; flex-shrink: 0; }
+        .cat-pill {
+            padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+            background: var(--card); font-size: 10px; font-weight: 500;
+            color: var(--muted); white-space: nowrap;
+        }
+        .cat-amt { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; }
+
         .table-card { flex-grow: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
         .table-inner { overflow-y: auto; flex-grow: 1; }
+        .table-inner::-webkit-scrollbar { width: 4px; }
+        .table-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
         table { width: 100%; border-collapse: collapse; }
-        thead th { padding: 10px 16px; font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--subtle); text-align: left; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card); }
-        tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; }
+        thead th {
+            padding: 10px 16px; font-size: 9px; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle);
+            text-align: left; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: var(--card);
+        }
+        thead th:last-child { text-align: right; }
+        tbody tr { transition: background 0.1s; }
+        tbody tr:hover { background: #fafbfc; }
+        tbody td { padding: 11px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
 
-        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff; margin: 0 auto 20px; background: var(--color-lodging); transition: background 0.2s; }
-        .color-swatches { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
-        .swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
-        .swatch.active { border-color: var(--text); transform: scale(1.15); }
-        .profile-btn { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; border: none; cursor: pointer; background: var(--color-lodging); }
-        
-        .rb-modal { position: fixed; inset: 0; z-index: 160; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
-        .rb-modal.hidden { display: none; }
-        .modal-card { background: var(--card); border-radius: 20px; padding: 28px; width: 360px; animation: slideUp 0.2s ease-out both; }
+        .exp-name   { font-size: 13px; font-weight: 500; letter-spacing: -0.1px; }
+        .exp-paidby { font-size: 10px; color: var(--subtle); margin-top: 1px; }
+        .cat-tag {
+            display: inline-block; padding: 2px 8px; border-radius: 5px;
+            font-size: 9px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .tag-Lodging   { background: #eef2ff; color: #4f46e5; }
+        .tag-Food      { background: #fff1f2; color: #e11d48; }
+        .tag-Transport { background: #f0fdf4; color: #059669; }
+        .tag-Activity  { background: #fffbeb; color: #d97706; }
 
-        #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; }
+        .exp-amount { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; text-align: right; }
+        .exp-split  { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--color-lodging); font-style: italic; text-align: right; }
+        .delete-btn {
+            background: none; border: none; cursor: pointer; color: #d1d5db;
+            padding: 4px 6px; border-radius: 6px; font-size: 13px; line-height: 1;
+            transition: all 0.15s;
+        }
+        .delete-btn:hover { color: #ef4444; background: #fff1f2; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--subtle); font-size: 13px; }
+        .empty-state div { font-size: 28px; margin-bottom: 8px; }
+
+        /* ── Toast ───────────────────────────────────── */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--text); color: #fff; padding: 9px 18px; border-radius: 10px;
+            font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s; z-index: 200;
+        }
         #toast.show { opacity: 1; }
+
+        /* ── Confirm modal ───────────────────────────── */
+        #confirm-modal {
+            position: fixed; inset: 0; z-index: 150; background: rgba(0,0,0,0.35);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #confirm-modal.hidden { display: none; }
+        .confirm-card {
+            background: var(--card); border-radius: 16px; padding: 28px 26px;
+            width: 320px; animation: slideUp 0.2s ease-out both;
+        }
+        .confirm-card h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+        .confirm-card p  { font-size: 12px; color: var(--muted); margin: 0 0 20px; line-height: 1.5; }
+        .confirm-actions { display: flex; gap: 8px; }
+        .confirm-cancel {
+            flex: 1; padding: 9px; border: 1px solid var(--border); border-radius: 9px;
+            background: var(--card); font-family: inherit; font-size: 11px;
+            font-weight: 600; cursor: pointer; transition: background 0.15s; color: var(--muted);
+        }
+        .confirm-cancel:hover { background: #f9fafb; }
+        .confirm-ok {
+            flex: 1; padding: 9px; border: none; border-radius: 9px;
+            background: #ef4444; color: #fff; font-family: inherit; font-size: 11px;
+            font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+        }
+        .confirm-ok:hover { opacity: 0.85; }
+
+        /* ── Profile Setup Screen ────────────────────── */
+        #profile-screen {
+            align-items: center; justify-content: center;
+            background: var(--bg); z-index: 45;
+        }
+        .profile-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 36px 32px; width: 360px;
+            animation: slideUp 0.35s ease-out both;
+        }
+        .profile-card h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
+        .profile-card p  { color: var(--muted); font-size: 13px; margin: 0 0 20px; line-height: 1.5; }
+        .avatar-preview {
+            width: 64px; height: 64px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 700; color: #fff;
+            margin: 0 auto 20px; letter-spacing: -0.5px;
+            background: var(--color-lodging);
+            transition: background 0.2s;
+        }
+        .color-swatches {
+            display: flex; gap: 8px; justify-content: center;
+            margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .swatch {
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+        }
+        .swatch:hover  { transform: scale(1.2); }
+        .swatch.active { border-color: var(--text); transform: scale(1.15); }
+
+        /* ── Profile edit modal ──────────────────────── */
+        #profile-modal {
+            position: fixed; inset: 0; z-index: 160; background: rgba(0,0,0,0.35);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #profile-modal.hidden { display: none; }
+        .profile-modal-card {
+            background: var(--card); border-radius: 16px; padding: 28px 26px;
+            width: 320px; animation: slideUp 0.2s ease-out both;
+        }
+        .profile-modal-card h3 { font-size: 15px; font-weight: 600; margin: 0 0 16px; }
+
+        /* ── Profile button in header ────────────────── */
+        .profile-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: #fff;
+            border: none; cursor: pointer; flex-shrink: 0;
+            background: var(--color-lodging);
+            transition: opacity 0.15s;
+        }
+        .profile-btn:hover { opacity: 0.85; }
+
+        /* ── Member strip in dashboard ───────────────── */
+        .member-strip-label {
+            font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--subtle); white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .member-strip {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .member-chip {
+            display: flex; align-items: center; gap: 5px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 3px 10px 3px 4px;
+            font-size: 11px; font-weight: 500; color: var(--text);
+        }
+        .member-chip.you {
+            border-color: #a5b4fc; background: #eef2ff; color: var(--color-lodging);
+        }
+        .member-avatar {
+            width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+
     </style>
 </head>
 <body>
 
+<!-- ═══════════════════════ AUTH ════════════════════════════════════ -->
 <div id="auth-screen" class="screen">
     <div class="auth-card">
-        <h2 class="text-xl font-semibold mb-1">Welcome back</h2>
-        <p class="text-sm text-gray-500 mb-6">Sign in to access your trips</p>
-        <input class="auth-input" type="email" id="auth-email" placeholder="Email address">
-        <input class="auth-input" type="password" id="auth-password" placeholder="Password">
+        <h2 id="auth-title">Welcome back</h2>
+        <p id="auth-subtitle">Sign in to access your trips</p>
+        <input class="auth-input" type="email"    id="auth-email"    placeholder="Email address" autocomplete="email">
+        <input class="auth-input" type="password" id="auth-password" placeholder="Password"      autocomplete="current-password">
         <button class="auth-btn" id="auth-submit">Sign In</button>
-        <div id="auth-error" class="text-xs text-red-500 mt-2"></div>
-        <span id="auth-toggle" class="block text-center text-xs mt-4 text-gray-500 cursor-pointer">No account? <span class="text-indigo-600 underline">Create one</span></span>
+        <div id="auth-error"></div>
+        <span id="auth-toggle">No account? <span id="auth-toggle-link">Create one</span></span>
     </div>
 </div>
 
+
+<!-- ═══════════════════════ PROFILE SETUP ══════════════════════════ -->
 <div id="profile-screen" class="screen hidden">
-    <div class="auth-card">
+    <div class="profile-card">
         <div class="avatar-preview" id="setup-avatar-preview">?</div>
-        <h2 class="text-lg font-semibold mb-1 text-center">What's your name?</h2>
-        <p class="text-sm text-gray-500 mb-5 text-center">How trip members will see you.</p>
+        <h2>What's your name?</h2>
+        <p>This is how other trip members will see you.</p>
         <div class="color-swatches" id="setup-color-swatches"></div>
-        <input class="auth-input" type="text" id="setup-display-name" placeholder="Display name">
-        <button class="auth-btn" id="btn-save-profile">Save & Continue</button>
+        <input class="auth-input" type="text" id="setup-display-name"
+               placeholder="Display name" maxlength="32" autocomplete="off">
+        <button class="auth-btn" id="btn-save-profile">Save &amp; Continue</button>
+        <div id="setup-error" style="color:#ef4444;font-size:12px;margin-top:8px;min-height:16px;"></div>
     </div>
 </div>
 
-<div id="profile-modal" class="rb-modal hidden">
-    <div class="modal-card">
-        <h3 class="text-base font-semibold mb-4">Edit Profile</h3>
-        <div class="avatar-preview" id="edit-avatar-preview">?</div>
-        <div class="color-swatches" id="edit-color-swatches"></div>
-        <input class="auth-input" type="text" id="edit-display-name" placeholder="Display name">
-        <div class="flex gap-2">
-            <button class="auth-btn bg-gray-100 !text-gray-500 flex-1" id="btn-profile-cancel">Cancel</button>
-            <button class="auth-btn flex-1" id="btn-save-profile-edit">Save</button>
+<!-- ═══════════════════════ PROFILE EDIT MODAL ══════════════════════ -->
+<div id="profile-modal" class="hidden">
+    <div class="profile-modal-card">
+        <h3>Edit Profile</h3>
+        <div class="avatar-preview" id="edit-avatar-preview" style="margin-bottom:14px;">?</div>
+        <div class="color-swatches" id="edit-color-swatches" style="margin-bottom:14px;"></div>
+        <input class="auth-input" type="text" id="edit-display-name"
+               placeholder="Display name" maxlength="32" style="margin-bottom:12px;">
+        <div style="display:flex;gap:8px;">
+            <button class="confirm-cancel" id="btn-profile-cancel"
+                    style="flex:1;padding:9px;border:1px solid var(--border);border-radius:9px;
+                           background:var(--card);font-family:inherit;font-size:11px;
+                           font-weight:600;cursor:pointer;color:var(--muted);">Cancel</button>
+            <button class="auth-btn" id="btn-save-profile-edit"
+                    style="flex:1;border-radius:9px;font-size:11px;padding:9px;">Save</button>
         </div>
+        <div id="edit-error" style="color:#ef4444;font-size:12px;margin-top:8px;min-height:16px;"></div>
     </div>
 </div>
 
-<div id="balance-modal" class="rb-modal hidden">
-    <div class="modal-card">
-        <h3 class="text-base font-semibold mb-2">Full Balance Sheet</h3>
-        <p class="text-[10px] text-gray-400 uppercase font-bold mb-4 tracking-wider">All Members</p>
-        <div id="full-balance-list" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1"></div>
-        <button class="auth-btn mt-6 w-full" onclick="document.getElementById('balance-modal').classList.add('hidden')">Close</button>
-    </div>
-</div>
-
+<!-- ═══════════════════════ GROUPS HOME ════════════════════════════ -->
 <div id="groups-screen" class="screen hidden">
     <div class="groups-inner">
-        <div class="flex justify-between items-center mb-8">
+
+        <div class="groups-header">
             <span class="brand">RoamBudget</span>
-            <div class="flex items-center gap-3">
-                <button class="profile-btn" id="btn-open-profile">?</button>
-                <button class="text-[11px] text-gray-400 font-medium" id="btn-logout">Sign Out</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <button class="profile-btn" id="btn-open-profile" title="Edit profile">?</button>
+                <button class="ghost-btn" id="btn-logout">Sign Out</button>
             </div>
         </div>
-        <div class="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-3">Your Trips</div>
-        <div id="groups-list"></div>
-        <div class="grid grid-cols-2 gap-3 mt-8">
-            <div class="bg-white border p-4 rounded-xl">
-                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Create Trip</h4>
-                <input class="auth-input text-xs" id="new-trip-code" placeholder="Trip code">
-                <input class="auth-input text-xs" id="new-trip-name" placeholder="Friendly name">
+
+        <div class="groups-section-label">Your Trips</div>
+        <div id="groups-list">
+            <div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>
+        </div>
+
+        <div class="action-cards">
+            <!-- Create trip -->
+            <div class="action-card">
+                <h4>Create Trip</h4>
+                <input class="action-input" id="new-trip-code"  placeholder="Trip code (e.g. PARIS2026)" maxlength="20">
+                <input class="action-input" id="new-trip-name"  placeholder="Display name (optional)">
                 <button class="action-submit" id="btn-create-trip">Create</button>
             </div>
-            <div class="bg-white border p-4 rounded-xl">
-                <h4 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Join Trip</h4>
-                <input class="auth-input text-xs" id="join-trip-code" placeholder="Enter code">
+            <!-- Join trip -->
+            <div class="action-card">
+                <h4>Join Trip</h4>
+                <input class="action-input" id="join-trip-code" placeholder="Enter trip code">
                 <button class="action-submit secondary" id="btn-join-trip">Join</button>
             </div>
         </div>
+
     </div>
 </div>
 
-<div id="app-screen" class="screen hidden">
-    <div class="flex justify-between items-center mb-4 flex-shrink-0">
-        <div class="flex items-center gap-3">
-            <button class="text-xs border px-3 py-1 rounded-lg text-gray-500" id="btn-back">← My Trips</button>
-            <span class="font-mono text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded" id="display-trip-id">—</span>
+<!-- ═══════════════════════ DASHBOARD ══════════════════════════════ -->
+<div id="app-screen" class="screen hidden" style="display:flex; flex-direction:column;">
+
+    <div class="topbar" style="flex-shrink:0;">
+        <div class="topbar-left">
+            <button class="back-btn" id="btn-back">← My Trips</button>
+            <span class="trip-badge" id="display-trip-id">—</span>
+            <button class="ghost-btn" id="btn-logout-dash">Sign Out</button>
         </div>
-        <div class="bg-gray-900 text-white px-4 py-2 rounded-xl text-right">
-            <div class="text-[9px] opacity-50 uppercase font-bold">Trip Total</div>
-            <div class="text-2xl font-semibold tracking-tighter" id="total-cost">$0.00</div>
+        <div class="total-pill">
+            <span class="label">Trip Total</span>
+            <span class="amount" id="total-cost">$0.00</span>
         </div>
     </div>
 
-    <div class="grid-main">
+    <div class="grid-main" style="flex-grow:1; min-height:0;">
+
+        <!-- LEFT SIDEBAR -->
         <div class="sidebar">
+
+            <!-- Chart + Balance Sheet -->
             <div class="card chart-card">
                 <div class="chart-wrap"><canvas id="budgetChart"></canvas></div>
-                <div class="flex justify-between items-end mt-4 mb-2">
-                    <div class="text-[9px] font-bold uppercase text-gray-400">Balance Sheet</div>
-                    <button id="btn-view-all-balances" class="text-[9px] font-bold text-indigo-600 uppercase hover:underline hidden" onclick="document.getElementById('balance-modal').classList.remove('hidden')">View All</button>
+
+                <div class="section-label" style="margin-top:14px;">
+                    Balance Sheet
+                    <span style="font-size:8px; color:var(--subtle); font-style:italic; margin-left:4px; text-transform:none; letter-spacing:0;">(net per person)</span>
                 </div>
-                <div class="balance-list" id="settle-up-list"></div>
+                <div class="balance-list" id="settle-up-list">
+                    <div style="color:var(--subtle);font-size:11px;">No expenses yet.</div>
+                </div>
             </div>
+
+            <!-- Add Expense Form -->
             <div class="card form-card">
-                <h3 class="text-[10px] font-bold uppercase text-gray-400 mb-2">Post New Expense</h3>
+                <h3>Post New Expense</h3>
                 <form id="expense-form">
-                    <input class="form-field" type="text" id="item_name" placeholder="Item name" required>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input class="form-field" type="number" id="amount" step="0.01" placeholder="$ Price" required>
+                    <input class="form-field" type="text"   id="item_name"   placeholder="Item name" required>
+                    <div class="form-grid">
+                        <input class="form-field" type="number" id="amount"   step="0.01" min="0.01" placeholder="$ Price" required>
                         <select class="form-field" id="category">
                             <option value="Lodging">🏨 Lodging</option>
                             <option value="Food">🍔 Food</option>
@@ -214,23 +538,32 @@
                             <option value="Activity">🎟️ Activity</option>
                         </select>
                     </div>
-                    <input class="form-field" type="text" id="paid_by" placeholder="Who paid? (exact name)" required>
-                    <input class="form-field" type="number" id="split_count" min="1" placeholder="Split count" required>
+                    <input class="form-field" type="text"   id="paid_by"     placeholder="Who paid? (exact name)" required>
+                    <input class="form-field" type="number" id="split_count" min="1" placeholder="Split between how many?" required>
                     <button type="submit" class="submit-btn" id="btn-submit">Add to Trip</button>
                 </form>
             </div>
         </div>
 
+        <!-- RIGHT COLUMN -->
         <div class="right-col">
-            <div class="flex items-center gap-3">
-                <span class="text-[9px] font-bold uppercase text-gray-400">Members</span>
-                <div id="member-strip" class="flex gap-2"></div>
+            <!-- Member strip -->
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                <span class="member-strip-label">Members</span>
+                <div class="member-strip" id="member-strip"></div>
             </div>
-            <div id="category-summary" class="flex flex-wrap gap-2"></div>
+            <div class="cat-pills" id="category-summary"></div>
             <div class="card table-card">
                 <div class="table-inner">
                     <table>
-                        <thead><tr><th>Expense</th><th>Category</th><th class="text-right">Amount</th><th class="w-10"></th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Expense</th>
+                                <th>Category</th>
+                                <th style="text-align:right;">Amount</th>
+                                <th style="text-align:right; width:40px;"></th>
+                            </tr>
+                        </thead>
                         <tbody id="expense-table-body"></tbody>
                     </table>
                 </div>
@@ -239,22 +572,93 @@
     </div>
 </div>
 
+<!-- ═══════════════════════ CONFIRM MODAL ══════════════════════════ -->
+<div id="confirm-modal" class="hidden">
+    <div class="confirm-card">
+        <h3 id="confirm-title">Are you sure?</h3>
+        <p  id="confirm-body">This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="confirm-cancel" id="confirm-cancel">Cancel</button>
+            <button class="confirm-ok"     id="confirm-ok">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
 <div id="toast"></div>
 
 <script>
-const SB_URL = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ"; 
+// ══════════════════════════════════════════════════════════════════
+//  CONFIG  —  replace with your real values
+// ══════════════════════════════════════════════════════════════════
+const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
+const SB_KEY  = "YOUR_SUPABASE_ANON_KEY";   // ← replace
 const API_URL = "https://roambudget-server.onrender.com/expenses";
-const AVATAR_COLORS = ["#6366f1","#f43f5e","#10b981","#f59e0b","#3b82f6","#8b5cf6","#ec4899","#14b8a6"];
-const CAT_COLORS = { Lodging: "#6366f1", Food: "#f43f5e", Transport: "#10b981", Activity: "#f59e0b" };
+const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
+const AVATAR_COLORS = [
+    "#6366f1","#f43f5e","#10b981","#f59e0b",
+    "#3b82f6","#8b5cf6","#ec4899","#14b8a6",
+];
+let currentDisplayName = "";
+let currentAvatarColor = AVATAR_COLORS[0];
+
+const CAT_COLORS = {
+    Lodging:   "#6366f1",
+    Food:      "#f43f5e",
+    Transport: "#10b981",
+    Activity:  "#f59e0b",
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
 const sb = supabase.createClient(SB_URL, SB_KEY);
-let currentDisplayName = "", currentAvatarColor = AVATAR_COLORS[0], currentSession = null, currentTripId = null, myChart = null, isSignUp = false;
+let myChart = null;
+let currentTripId   = null;   // trip_code string
+let currentTripRow  = null;   // full trips row
+let currentSession  = null;
+let confirmCallback = null;
+let isSignUp        = false;
 
-function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500); }
-function getInitials(n) { return n ? n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) : "?"; }
+// ══════════════════════════════════════════════════════════════════
+//  SCREEN ROUTER
+// ══════════════════════════════════════════════════════════════════
+function showScreen(id) {
+    ["auth-screen","profile-screen","groups-screen","app-screen"].forEach(s => {
+        const el = document.getElementById(s);
+        el.classList.toggle("hidden", s !== id);
+    });
+}
 
+// ══════════════════════════════════════════════════════════════════
+//  TOAST + CONFIRM
+// ══════════════════════════════════════════════════════════════════
+function toast(msg, ms = 2500) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), ms);
+}
+
+function confirm(title, body, cb) {
+    document.getElementById("confirm-title").textContent = title;
+    document.getElementById("confirm-body").textContent  = body;
+    document.getElementById("confirm-modal").classList.remove("hidden");
+    confirmCallback = cb;
+}
+document.getElementById("confirm-cancel").onclick = () => {
+    document.getElementById("confirm-modal").classList.add("hidden");
+    confirmCallback = null;
+};
+document.getElementById("confirm-ok").onclick = () => {
+    document.getElementById("confirm-modal").classList.add("hidden");
+    if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════════
 async function init() {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
@@ -262,172 +666,650 @@ async function init() {
         const meta = session.user.user_metadata || {};
         currentDisplayName = meta.display_name || "";
         currentAvatarColor = meta.avatar_color || AVATAR_COLORS[0];
-        updateUIProfile();
-        if (!currentDisplayName) { initSwatches("setup"); showScreen("profile-screen"); }
-        else { showScreen("groups-screen"); loadGroups(); }
-    } else showScreen("auth-screen");
-}
-
-function initSwatches(ctx) {
-    const container = document.getElementById(`${ctx}-color-swatches`), preview = document.getElementById(`${ctx}-avatar-preview`);
-    container.innerHTML = "";
-    AVATAR_COLORS.forEach(c => {
-        const s = document.createElement("div"); 
-        s.className = "swatch" + (c === currentAvatarColor ? " active" : ""); 
-        s.style.background = c;
-        s.onclick = () => { currentAvatarColor = c; container.querySelectorAll(".swatch").forEach(x => x.classList.remove("active")); s.classList.add("active"); preview.style.background = c; };
-        container.appendChild(s);
-    });
-    const input = document.getElementById(`${ctx}-display-name`);
-    input.oninput = () => { preview.textContent = getInitials(input.value); };
-}
-
-async function saveProfile(name, color) {
-    if (!name.trim()) return false;
-    const { error } = await sb.auth.updateUser({ data: { display_name: name.trim(), avatar_color: color } });
-    if (error) return false;
-    currentDisplayName = name.trim(); currentAvatarColor = color;
-    updateUIProfile();
-    if (currentTripId) refreshCurrentUserInStrip();
-    return true;
-}
-
-function updateUIProfile() { 
-    const b = document.getElementById("btn-open-profile"); 
-    if (b) {
-        b.textContent = getInitials(currentDisplayName); 
-        b.style.background = currentAvatarColor; 
+        updateProfileButtons();
+        if (!currentDisplayName) {
+            initColorSwatches("setup");
+            showScreen("profile-screen");
+        } else {
+            showScreen("groups-screen");
+            loadGroups();
+        }
+    } else {
+        showScreen("auth-screen");
     }
 }
 
-document.getElementById("btn-save-profile").onclick = async () => { if (await saveProfile(document.getElementById("setup-display-name").value, currentAvatarColor)) { showScreen("groups-screen"); loadGroups(); } };
-document.getElementById("btn-open-profile").onclick = () => { 
-    document.getElementById("edit-display-name").value = currentDisplayName; 
-    document.getElementById("edit-avatar-preview").textContent = getInitials(currentDisplayName);
-    document.getElementById("edit-avatar-preview").style.background = currentAvatarColor;
-    initSwatches("edit"); 
-    document.getElementById("profile-modal").classList.remove('hidden'); 
-};
-document.getElementById("btn-profile-cancel").onclick = () => document.getElementById("profile-modal").classList.add('hidden');
-document.getElementById("btn-save-profile-edit").onclick = async () => { if (await saveProfile(document.getElementById("edit-display-name").value, currentAvatarColor)) { document.getElementById("profile-modal").classList.add('hidden'); toast("Updated!"); } };
+document.getElementById("auth-submit").onclick = async () => {
+    const email    = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const errEl    = document.getElementById("auth-error");
+    errEl.textContent = "";
+    if (!email || !password) { errEl.textContent = "Fill in both fields."; return; }
 
+    const { data, error } = isSignUp
+        ? await sb.auth.signUp({ email, password })
+        : await sb.auth.signInWithPassword({ email, password });
+
+    if (error) { errEl.textContent = error.message; return; }
+    if (isSignUp) {
+        errEl.style.color = "#16a34a";
+        errEl.textContent = "Check your email to confirm.";
+        return;
+    }
+    currentSession = data.session;
+    const meta = data.session.user.user_metadata || {};
+    currentDisplayName = meta.display_name || "";
+    currentAvatarColor = meta.avatar_color || AVATAR_COLORS[0];
+    updateProfileButtons();
+    if (!currentDisplayName) {
+        initColorSwatches("setup");
+        showScreen("profile-screen");
+    } else {
+        showScreen("groups-screen");
+        loadGroups();
+    }
+};
+
+document.getElementById("auth-toggle").onclick = () => {
+    isSignUp = !isSignUp;
+    document.getElementById("auth-title").textContent       = isSignUp ? "Create account"    : "Welcome back";
+    document.getElementById("auth-subtitle").textContent    = isSignUp ? "Join your trip"    : "Sign in to access your trips";
+    document.getElementById("auth-submit").textContent      = isSignUp ? "Sign Up"           : "Sign In";
+    document.getElementById("auth-toggle-link").textContent = isSignUp ? "Sign in instead"   : "Create one";
+    document.getElementById("auth-error").textContent       = "";
+};
+
+
+// ══════════════════════════════════════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════════════════════════════════════
+
+function getInitials(name) {
+    return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "?";
+}
+
+function updateProfileButtons() {
+    // Update the profile button in the groups header
+    const btn = document.getElementById("btn-open-profile");
+    if (!btn) return;
+    btn.textContent    = currentDisplayName ? getInitials(currentDisplayName) : "?";
+    btn.style.background = currentAvatarColor;
+}
+
+function initColorSwatches(context) {
+    // context = "setup" or "edit"
+    const container = document.getElementById(`${context}-color-swatches`);
+    const preview   = document.getElementById(`${context}-avatar-preview`);
+    container.innerHTML = "";
+
+    // Set initial preview color
+    preview.style.background = currentAvatarColor;
+    if (context === "edit") {
+        const name = document.getElementById("edit-display-name").value || currentDisplayName;
+        preview.textContent = getInitials(name);
+    }
+
+    AVATAR_COLORS.forEach(color => {
+        const s = document.createElement("div");
+        s.className = "swatch" + (color === currentAvatarColor ? " active" : "");
+        s.style.background = color;
+        s.onclick = () => {
+            currentAvatarColor = color;
+            container.querySelectorAll(".swatch").forEach(x => x.classList.remove("active"));
+            s.classList.add("active");
+            preview.style.background = color;
+        };
+        container.appendChild(s);
+    });
+
+    // Live preview on name input
+    const input = document.getElementById(`${context}-display-name`);
+    input.oninput = () => {
+        preview.textContent = getInitials(input.value) || "?";
+    };
+}
+
+async function saveProfile(name, color, errorElId) {
+    const errEl = document.getElementById(errorElId);
+    errEl.textContent = "";
+    if (!name.trim()) { errEl.textContent = "Enter a display name."; return false; }
+
+    const { error } = await sb.auth.updateUser({
+        data: { display_name: name.trim(), avatar_color: color }
+    });
+    if (error) { errEl.textContent = error.message; return false; }
+
+    currentDisplayName = name.trim();
+    currentAvatarColor = color;
+    // Refresh session so user_metadata is current
+    const { data } = await sb.auth.getSession();
+    if (data.session) currentSession = data.session;
+    updateProfileButtons();
+    // Keep trip_members row in sync so the strip shows the new name live
+    refreshCurrentUserInStrip();
+    return true;
+}
+
+// ── First-time profile setup ─────────────────────────────────────
+document.getElementById("btn-save-profile").onclick = async () => {
+    const name  = document.getElementById("setup-display-name").value.trim();
+    const ok    = await saveProfile(name, currentAvatarColor, "setup-error");
+    if (ok) { showScreen("groups-screen"); loadGroups(); }
+};
+
+// Initialise preview text on setup screen
+document.getElementById("setup-display-name").oninput = function() {
+    document.getElementById("setup-avatar-preview").textContent = getInitials(this.value) || "?";
+};
+
+// ── Profile edit modal ───────────────────────────────────────────
+document.getElementById("btn-open-profile").onclick = () => {
+    document.getElementById("edit-display-name").value = currentDisplayName;
+    document.getElementById("edit-avatar-preview").textContent = getInitials(currentDisplayName) || "?";
+    initColorSwatches("edit");
+    document.getElementById("profile-modal").classList.remove("hidden");
+};
+document.getElementById("btn-profile-cancel").onclick = () => {
+    document.getElementById("profile-modal").classList.add("hidden");
+};
+document.getElementById("btn-save-profile-edit").onclick = async () => {
+    const name = document.getElementById("edit-display-name").value.trim();
+    const ok   = await saveProfile(name, currentAvatarColor, "edit-error");
+    if (ok) {
+        document.getElementById("profile-modal").classList.add("hidden");
+        toast("✓ Profile updated");
+    }
+};
+
+async function signOut() {
+    await sb.auth.signOut();
+    currentSession = null; currentTripId = null; currentTripRow = null;
+    showScreen("auth-screen");
+}
+document.getElementById("btn-logout").onclick      = signOut;
+document.getElementById("btn-logout-dash").onclick = signOut;
+
+// ══════════════════════════════════════════════════════════════════
+//  GROUPS HOME
+// ══════════════════════════════════════════════════════════════════
 async function loadGroups() {
-    const { data } = await sb.from("trip_members").select("trip_id, trips(id, trip_code, name, creator_id)").eq("user_id", currentSession.user.id);
-    const list = document.getElementById("groups-list"); list.innerHTML = "";
-    if (!data?.length) return list.innerHTML = "<div class='text-center p-5 text-gray-400 text-xs'>No trips yet.</div>";
-    data.forEach(r => {
-        const t = r.trips;
-        list.insertAdjacentHTML("beforeend", `<div class="group-card" onclick="enterTrip('${t.trip_code}','${t.name||t.trip_code}')"><div><div class="font-semibold text-sm">${t.name||t.trip_code}</div><div class="text-[10px] text-gray-400">${t.trip_code}</div></div><button class="icon-btn">→</button></div>`);
+    if (!currentSession) return;
+    const { data, error } = await sb
+        .from("trip_members")
+        .select("trip_id, trips(id, trip_code, name, creator_id)")
+        .eq("user_id", currentSession.user.id);
+
+    const list = document.getElementById("groups-list");
+
+    if (error) {
+        list.innerHTML = `<div class="empty-groups" style="color:#ef4444;">Error loading trips: ${escHtml(error.message)}</div>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        list.innerHTML = `<div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>`;
+        return;
+    }
+
+    list.innerHTML = "";
+    for (const row of data) {
+        const trip       = row.trips;
+        const isCreator   = trip.creator_id === currentSession.user.id;
+        const code        = trip.trip_code;
+        // Show friendly name if set, fall back to trip_code
+        const displayName = (trip.name && trip.name.trim()) ? trip.name.trim() : code;
+
+        // Fetch expense count + total for this trip to show in meta
+        const { data: exps } = await sb
+            .from("trip_expenses")
+            .select("amount")
+            .eq("trip_id", code);
+
+        const total    = (exps || []).reduce((s, e) => s + parseFloat(e.amount), 0);
+        const expCount = (exps || []).length;
+
+        list.insertAdjacentHTML("beforeend", `
+            <div class="group-card" id="gcard-${escHtml(code)}">
+                <div class="group-card-left" onclick="enterTrip('${escHtml(code)}', '${escHtml(displayName)}')">
+                    <div class="group-card-name">${escHtml(displayName)}</div>
+                    <div class="group-card-meta">${escHtml(code)} · ${expCount} expense${expCount !== 1 ? "s" : ""} · $${total.toFixed(2)} total</div>
+                </div>
+                <div class="group-card-right">
+                    ${isCreator ? `<span class="creator-badge">Creator</span>` : ""}
+                    <div class="group-actions">
+                        <button class="icon-btn enter" title="Open trip" onclick="enterTrip('${escHtml(code)}', '${escHtml(displayName)}')">→</button>
+                        ${isCreator
+                            ? `<button class="icon-btn delete" title="Delete trip" onclick="promptDeleteTrip('${escHtml(code)}', '${escHtml(displayName)}')">🗑</button>`
+                            : `<button class="icon-btn leave"  title="Leave trip"  onclick="promptLeaveTrip('${escHtml(code)}', '${escHtml(displayName)}')">✕</button>`
+                        }
+                    </div>
+                </div>
+            </div>`);
+    }
+}
+
+// ── Create trip ──────────────────────────────────────────────────
+document.getElementById("btn-create-trip").onclick = async () => {
+    const code = document.getElementById("new-trip-code").value.trim().toUpperCase().replace(/\s+/g, "");
+    const name = document.getElementById("new-trip-name").value.trim();
+    if (!code) { toast("Enter a trip code."); return; }
+
+    // 1. Insert into trips table
+    const { data: tripRow, error: tripErr } = await sb
+        .from("trips")
+        .insert({ trip_code: code, name: name || null, creator_id: currentSession.user.id, require_payment: false })
+        .select()
+        .single();
+
+    if (tripErr) { toast("⚠️ " + tripErr.message); return; }
+
+    // 2. Add creator to trip_members (with their profile info)
+    const { error: memErr } = await sb
+        .from("trip_members")
+        .insert({
+            trip_id:      tripRow.id,
+            user_id:      currentSession.user.id,
+            display_name: currentDisplayName || null,
+            avatar_color: currentAvatarColor || null,
+        });
+
+    if (memErr) { toast("⚠️ " + memErr.message); return; }
+
+    document.getElementById("new-trip-code").value = "";
+    document.getElementById("new-trip-name").value = "";
+    toast(`✓ Trip ${code} created`);
+    loadGroups();
+};
+
+// ── Join trip ────────────────────────────────────────────────────
+document.getElementById("btn-join-trip").onclick = async () => {
+    const code = document.getElementById("join-trip-code").value.trim().toUpperCase();
+    if (!code) { toast("Enter a trip code."); return; }
+
+    // Look up the trip
+    const { data: tripRow, error: lookupErr } = await sb
+        .from("trips")
+        .select("id, trip_code")
+        .eq("trip_code", code)
+        .single();
+
+    if (lookupErr || !tripRow) { toast("⚠️ Trip not found. Check the code."); return; }
+
+    // Add to trip_members with profile info (ignore duplicate error)
+    const { error: memErr } = await sb
+        .from("trip_members")
+        .insert({
+            trip_id:      tripRow.id,
+            user_id:      currentSession.user.id,
+            display_name: currentDisplayName || null,
+            avatar_color: currentAvatarColor || null,
+        });
+
+    if (memErr && !memErr.message.includes("duplicate")) {
+        toast("⚠️ " + memErr.message); return;
+    }
+
+    document.getElementById("join-trip-code").value = "";
+    toast(`✓ Joined ${code}`);
+    loadGroups();
+};
+
+// ── Leave trip ───────────────────────────────────────────────────
+function promptLeaveTrip(code, displayName) {
+    const label = displayName || code;
+    confirm(
+        "Leave trip?",
+        `You'll be removed from "${label}". Your expenses will remain visible to other members.`,
+        () => leaveTrip(code)
+    );
+}
+
+async function leaveTrip(code) {
+    // Resolve trip uuid from code
+    const { data: tripRow } = await sb.from("trips").select("id").eq("trip_code", code).single();
+    if (!tripRow) { toast("⚠️ Trip not found."); return; }
+
+    const { error } = await sb
+        .from("trip_members")
+        .delete()
+        .eq("trip_id",  tripRow.id)
+        .eq("user_id",  currentSession.user.id);
+
+    if (error) { toast("⚠️ " + error.message); return; }
+    toast(`Left ${code}`);
+    loadGroups();
+}
+
+// ── Delete trip (creator only) ───────────────────────────────────
+function promptDeleteTrip(code, displayName) {
+    const label = displayName || code;
+    confirm(
+        "Delete trip?",
+        `This will permanently delete "${label}" and ALL its expenses for everyone. This cannot be undone.`,
+        () => deleteTrip(code)
+    );
+}
+
+async function deleteTrip(code) {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(`${TRIPS_API}/${code}`, {
+        method:  "DELETE",
+        headers: { "Authorization": `Bearer ${session.access_token}` }
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast("⚠️ " + (err.detail || "Delete failed")); return;
+    }
+    toast(`Trip ${code} deleted`);
+    loadGroups();
+}
+
+// ── Enter trip → dashboard ───────────────────────────────────────
+async function enterTrip(code, displayName) {
+    currentTripId = code;
+    document.getElementById("display-trip-id").textContent = displayName || code;
+    showScreen("app-screen");
+    fetchExpenses();
+    loadMemberStrip();
+}
+
+document.getElementById("btn-back").onclick = () => {
+    currentTripId  = null;
+    currentTripRow = null;
+    if (myChart) { myChart.destroy(); myChart = null; }
+    showScreen("groups-screen");
+    loadGroups();
+};
+
+
+// ══════════════════════════════════════════════════════════════════
+//  MEMBER STRIP
+//  Reads display_name + avatar_color directly from trip_members.
+//  No backend call needed — client-side Supabase query only.
+// ══════════════════════════════════════════════════════════════════
+async function loadMemberStrip() {
+    const strip = document.getElementById("member-strip");
+    strip.innerHTML = `<span style="font-size:11px;color:var(--subtle);">Loading…</span>`;
+
+    // 1. Resolve trip_code → trips.id
+    const { data: tripRow, error: tripErr } = await sb
+        .from("trips")
+        .select("id")
+        .eq("trip_code", currentTripId)
+        .single();
+
+    if (tripErr || !tripRow) { strip.innerHTML = ""; return; }
+
+    // 2. Query trip_members with display_name + avatar_color columns
+    const { data: members, error: memErr } = await sb
+        .from("trip_members")
+        .select("user_id, display_name, avatar_color")
+        .eq("trip_id", tripRow.id);
+
+    if (memErr || !members?.length) { strip.innerHTML = ""; return; }
+
+    strip.innerHTML = "";
+    members.forEach(m => {
+        const isYou    = m.user_id === currentSession.user.id;
+        const name     = m.display_name || "Member";
+        const color    = m.avatar_color || AVATAR_COLORS[0];
+        const initials = getInitials(name);
+        strip.insertAdjacentHTML("beforeend", `
+            <div class="member-chip${isYou ? " you" : ""}" title="${escHtml(name)}${isYou ? " (you)" : ""}">
+                <div class="member-avatar" style="background:${color};">${escHtml(initials)}</div>
+                ${escHtml(isYou ? name + " (you)" : name)}
+            </div>`);
     });
 }
 
-document.getElementById("btn-create-trip").onclick = async () => {
-    const code = document.getElementById("new-trip-code").value.toUpperCase(), name = document.getElementById("new-trip-name").value;
-    const { data, error } = await sb.from("trips").insert({ trip_code: code, name: name||null, creator_id: currentSession.user.id }).select().single();
-    if (error) return toast(error.message);
-    await sb.from("trip_members").insert({ trip_id: data.id, user_id: currentSession.user.id, display_name: currentDisplayName, avatar_color: currentAvatarColor });
-    loadGroups();
-};
+// Called after saveProfile so the strip stays in sync if the user edits their name
+async function refreshCurrentUserInStrip() {
+    if (!currentTripId) return;
+    const { data: tripRow } = await sb
+        .from("trips").select("id").eq("trip_code", currentTripId).single();
+    if (!tripRow) return;
+    await sb.from("trip_members")
+        .update({ display_name: currentDisplayName, avatar_color: currentAvatarColor })
+        .eq("trip_id", tripRow.id)
+        .eq("user_id", currentSession.user.id);
+    loadMemberStrip();
+}
 
-document.getElementById("btn-join-trip").onclick = async () => {
-    const code = document.getElementById("join-trip-code").value.toUpperCase();
-    const { data } = await sb.from("trips").select("id").eq("trip_code", code).single();
-    if (!data) return toast("Not found");
-    await sb.from("trip_members").insert({ trip_id: data.id, user_id: currentSession.user.id, display_name: currentDisplayName, avatar_color: currentAvatarColor });
-    loadGroups();
-};
+// ══════════════════════════════════════════════════════════════════
+//  EXPENSES — FETCH & RENDER
+// ══════════════════════════════════════════════════════════════════
+async function fetchExpenses() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !currentTripId) return;
 
-async function enterTrip(c, n) { currentTripId = c; document.getElementById("display-trip-id").textContent = n; showScreen("app-screen"); fetchEx(); loadMemberStrip(); }
-document.getElementById("btn-back").onclick = () => { currentTripId = null; showScreen("groups-screen"); loadGroups(); };
+    try {
+        const res = await fetch(`${API_URL}/${currentTripId}`, {
+            headers: { "Authorization": `Bearer ${session.access_token}` }
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const data = await res.json();
+        if (Array.isArray(data)) renderUI(data);
+    } catch (err) {
+        toast("⚠️ Could not load expenses — " + err.message);
+    }
+}
 
-async function loadMemberStrip() {
-    const s = document.getElementById("member-strip");
-    const { data: trip } = await sb.from("trips").select("id").eq("trip_code", currentTripId).single();
-    const { data: members } = await sb.from("trip_members").select("user_id, display_name, avatar_color").eq("trip_id", trip.id);
-    s.innerHTML = "";
-    members.forEach(m => {
-        if(m.display_name && m.display_name !== 'null') {
-           s.insertAdjacentHTML("beforeend", `<div class="flex items-center gap-1.5 bg-white border rounded-full px-2 py-1 text-[10px] font-medium"><div class="w-4 h-4 rounded-full flex items-center justify-center text-[7px] text-white font-bold" style="background:${m.avatar_color}">${getInitials(m.display_name)}</div>${m.display_name}</div>`);
+function renderUI(expenses) {
+    const tableBody    = document.getElementById("expense-table-body");
+    const settleList   = document.getElementById("settle-up-list");
+    const summaryDiv   = document.getElementById("category-summary");
+    const totalDisplay = document.getElementById("total-cost");
+
+    tableBody.innerHTML = "";
+    settleList.innerHTML = "";
+    summaryDiv.innerHTML = "";
+
+    if (expenses.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div>✈️</div>No expenses yet — add one to get started.</div></td></tr>`;
+        totalDisplay.textContent = "$0.00";
+        updateChart({});
+        return;
+    }
+
+    let total     = 0;
+    let catTotals = {};
+    // balances[name] = { paid: X, owed: Y }  →  net = paid - owed
+    let balances  = {};
+
+    expenses.forEach(exp => {
+        const amt      = parseFloat(exp.amount);
+        const splits   = parseInt(exp.split_count) || 1;
+        const perPerson = amt / splits;
+
+        total += amt;
+        catTotals[exp.category] = (catTotals[exp.category] || 0) + amt;
+
+        // Payer paid the full amount and owes their share
+        if (!balances[exp.paid_by]) balances[exp.paid_by] = { paid: 0, owed: 0 };
+        balances[exp.paid_by].paid += amt;
+        balances[exp.paid_by].owed += perPerson;
+
+        const catClass = `tag-${exp.category}`;
+        tableBody.insertAdjacentHTML("beforeend", `
+            <tr data-id="${exp.id}">
+                <td>
+                    <div class="exp-name">${escHtml(exp.item_name)}</div>
+                    <div class="exp-paidby">Paid by ${escHtml(exp.paid_by)}</div>
+                </td>
+                <td><span class="cat-tag ${catClass}">${escHtml(exp.category)}</span></td>
+                <td>
+                    <div class="exp-amount">$${amt.toFixed(2)}</div>
+                    <div class="exp-split">$${perPerson.toFixed(2)} / person</div>
+                </td>
+                <td style="text-align:right;">
+                    <button class="delete-btn" onclick="deleteExpense(${exp.id})" title="Delete expense">✕</button>
+                </td>
+            </tr>`);
+    });
+
+    totalDisplay.textContent = `$${total.toFixed(2)}`;
+    updateChart(catTotals);
+
+    // ── Category pills ──
+    for (const [cat, sum] of Object.entries(catTotals)) {
+        const color = CAT_COLORS[cat] || "#6b7280";
+        summaryDiv.insertAdjacentHTML("beforeend", `
+            <div class="cat-pill">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:5px;vertical-align:middle;"></span>
+                ${escHtml(cat)}: <span class="cat-amt" style="color:${color};">$${sum.toFixed(2)}</span>
+            </div>`);
+    }
+
+    // ── Balance sheet — net per person ──────────────────────────
+    // net > 0  → they paid more than they owe → others owe them
+    // net < 0  → they paid less than they owe → they owe others
+    // net = 0  → all square
+    const entries = Object.entries(balances)
+        .map(([name, b]) => ({ name, net: b.paid - b.owed }))
+        .sort((a, b) => b.net - a.net);
+
+    if (entries.length === 0) {
+        settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">No data.</div>`;
+    } else {
+        entries.forEach(({ name, net }) => {
+            const absNet = Math.abs(net);
+            let cls, label, valStr;
+
+            if (absNet < 0.01) {
+                cls    = "even";
+                label  = "Settled";
+                valStr = "—";
+            } else if (net > 0) {
+                cls    = "owed";
+                label  = "is owed";
+                valStr = `+$${absNet.toFixed(2)}`;
+            } else {
+                cls    = "owes";
+                label  = "owes";
+                valStr = `-$${absNet.toFixed(2)}`;
+            }
+
+            settleList.insertAdjacentHTML("beforeend", `
+                <div class="balance-card ${cls}">
+                    <div>
+                        <div class="bname">${escHtml(name)}</div>
+                        <div class="bsub">${label}</div>
+                    </div>
+                    <span class="bval">${valStr}</span>
+                </div>`);
+        });
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHART
+// ══════════════════════════════════════════════════════════════════
+function updateChart(catTotals) {
+    const ctx = document.getElementById("budgetChart").getContext("2d");
+    if (myChart) { myChart.destroy(); myChart = null; }
+    const labels = Object.keys(catTotals);
+    if (!labels.length) return;
+
+    myChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels,
+            datasets: [{
+                data: Object.values(catTotals),
+                backgroundColor: labels.map(l => CAT_COLORS[l] || "#94a3b8"),
+                borderWidth: 0,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        boxWidth: 7, boxHeight: 7, borderRadius: 3, useBorderRadius: true,
+                        font: { size: 9, weight: "600", family: "DM Sans" },
+                        padding: 10, color: "#6b7280",
+                    }
+                }
+            },
+            cutout: "78%",
         }
     });
 }
 
-async function fetchEx() {
-    const res = await fetch(`${API_URL}/${currentTripId}`, { headers: { "Authorization": `Bearer ${currentSession.access_token}` } });
-    const data = await res.json(); renderUI(data);
-}
-
-function renderUI(exps) {
-    const table = document.getElementById("expense-table-body"), 
-          settle = document.getElementById("settle-up-list"), 
-          fullSettle = document.getElementById("full-balance-list"),
-          sumDiv = document.getElementById("category-summary"), 
-          totalEl = document.getElementById("total-cost"),
-          viewAllBtn = document.getElementById("btn-view-all-balances");
-
-    table.innerHTML = ""; settle.innerHTML = ""; fullSettle.innerHTML = ""; sumDiv.innerHTML = "";
-    let total = 0, cats = {}, bals = {};
-    
-    exps.forEach(e => {
-        const a = parseFloat(e.amount), s = parseInt(e.split_count)||1, p = a/s;
-        total += a; cats[e.category] = (cats[e.category]||0) + a;
-        if (!bals[e.paid_by]) bals[e.paid_by] = { p: 0, o: 0 };
-        bals[e.paid_by].p += a; bals[e.paid_by].o += p;
-        table.insertAdjacentHTML("beforeend", `<tr><td><div class="text-sm font-medium">${e.item_name}</div><div class="text-[10px] text-gray-400">Paid by ${e.paid_by}</div></td><td><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase" style="background:${CAT_COLORS[e.category]}20; color:${CAT_COLORS[e.category]}">${e.category}</span></td><td class="text-right font-mono text-sm">$${a.toFixed(2)}</td><td class="text-right"><button onclick="delEx(${e.id})" class="text-gray-300 hover:text-red-500">✕</button></td></tr>`);
-    });
-    
-    totalEl.textContent = `$${total.toFixed(2)}`;
-    Object.entries(cats).forEach(([c, s]) => sumDiv.insertAdjacentHTML("beforeend", `<div class="bg-white border px-3 py-1 rounded-full text-[10px] font-medium"><span class="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style="background:${CAT_COLORS[c]}"></span>${c}: $${s.toFixed(2)}</div>`));
-    
-    const balanceEntries = Object.entries(bals);
-    
-    // View All button threshold (2 entries max in sidebar before View All appears)
-    if (balanceEntries.length > 2) viewAllBtn.classList.remove('hidden');
-    else viewAllBtn.classList.add('hidden');
-
-    balanceEntries.forEach(([n, b], index) => {
-        const net = b.p - b.o, abs = Math.abs(net);
-        const html = `<div class="balance-card ${net>=0?'owed':'owes'}"><div><div class="font-bold">${n}</div><div class="text-[9px] opacity-70">${net>=0?'is owed':'owes'}</div></div><span class="font-mono">$${abs.toFixed(2)}</span></div>`;
-        
-        // LIMIT TO 2 IN SIDEBAR
-        if (index < 2) settle.insertAdjacentHTML("beforeend", html);
-        
-        // Add all to Modal
-        fullSettle.insertAdjacentHTML("beforeend", html);
-    });
-    
-    updateC(cats);
-}
-
-function updateC(cats) {
-    const ctx = document.getElementById("budgetChart").getContext("2d"); if (myChart) myChart.destroy();
-    const l = Object.keys(cats); if (!l.length) return;
-    myChart = new Chart(ctx, { type: "doughnut", data: { labels: l, datasets: [{ data: Object.values(cats), backgroundColor: l.map(x => CAT_COLORS[x]), borderWidth: 0 }] }, options: { cutout: "78%", plugins: { legend: { display: false } } } });
-}
-
-async function refreshCurrentUserInStrip() {
-    const { data: trip } = await sb.from("trips").select("id").eq("trip_code", currentTripId).single();
-    await sb.from("trip_members").update({ display_name: currentDisplayName, avatar_color: currentAvatarColor }).eq("trip_id", trip.id).eq("user_id", currentSession.user.id);
-    loadMemberStrip();
-}
-
+// ══════════════════════════════════════════════════════════════════
+//  ADD EXPENSE
+// ══════════════════════════════════════════════════════════════════
 document.getElementById("expense-form").onsubmit = async e => {
     e.preventDefault();
-    const payload = { item_name: document.getElementById("item_name").value, amount: parseFloat(document.getElementById("amount").value), category: document.getElementById("category").value, paid_by: document.getElementById("paid_by").value, split_count: parseInt(document.getElementById("split_count").value), trip_id: currentTripId };
-    await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${currentSession.access_token}` }, body: JSON.stringify(payload) });
-    e.target.reset(); fetchEx();
+    const btn = document.getElementById("btn-submit");
+    btn.disabled = true; btn.textContent = "Posting…";
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { toast("Not signed in."); btn.disabled = false; btn.textContent = "Add to Trip"; return; }
+
+    const payload = {
+        item_name:   document.getElementById("item_name").value.trim(),
+        amount:      parseFloat(document.getElementById("amount").value),
+        category:    document.getElementById("category").value,
+        paid_by:     document.getElementById("paid_by").value.trim(),
+        split_count: parseInt(document.getElementById("split_count").value) || 1,
+        trip_id:     currentTripId,
+    };
+
+    try {
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        e.target.reset();
+        toast("✓ Expense added");
+        fetchExpenses();
+    } catch (err) {
+        toast("⚠️ " + err.message);
+    } finally {
+        btn.disabled = false; btn.textContent = "Add to Trip";
+    }
 };
 
-async function delEx(id) { await fetch(`${API_URL}/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${currentSession.access_token}` } }); fetchEx(); }
-document.getElementById("auth-submit").onclick = async () => {
-    const email = document.getElementById("auth-email").value, pass = document.getElementById("auth-password").value;
-    const { data, error } = isSignUp ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) return;
-    init();
-};
-document.getElementById("auth-toggle").onclick = () => { isSignUp = !isSignUp; document.getElementById("auth-title").textContent = isSignUp ? "Create account" : "Welcome back"; };
-document.getElementById("btn-logout").onclick = document.getElementById("btn-logout-dash").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+// ══════════════════════════════════════════════════════════════════
+//  DELETE EXPENSE
+// ══════════════════════════════════════════════════════════════════
+async function deleteExpense(id) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row) row.style.opacity = "0.3";
+    try {
+        const res = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${session.access_token}` }
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        toast("Expense removed");
+        fetchExpenses();
+    } catch (err) {
+        toast("⚠️ Delete failed — " + err.message);
+        if (row) row.style.opacity = "1";
+    }
+}
 
+// ══════════════════════════════════════════════════════════════════
+//  UTIL
+// ══════════════════════════════════════════════════════════════════
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════════════════
 init();
 </script>
 </body>
