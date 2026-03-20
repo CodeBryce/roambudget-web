@@ -37,38 +37,160 @@
         .screen.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
 
         /* ── Auth ────────────────────────────────────── */
-        #auth-screen {
-            align-items: center; justify-content: center;
-            background: var(--bg); z-index: 50;
-        }
-        .auth-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 20px; padding: 36px 32px; width: 360px;
-            animation: slideUp 0.35s ease-out both;
-        }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .auth-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 4px; }
-        .auth-card p  { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-8px); }
+        }
+        @keyframes drift {
+            0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity: 0.7; }
+            33%  { transform: translateX(12px) translateY(-8px) rotate(5deg); opacity: 1; }
+            66%  { transform: translateX(-8px) translateY(-14px) rotate(-3deg); opacity: 0.8; }
+            100% { transform: translateX(0) translateY(0) rotate(0deg); opacity: 0.7; }
+        }
+
+        #auth-screen {
+            align-items: stretch; justify-content: stretch;
+            background: #0f0c1e; z-index: 50;
+            overflow: hidden;
+        }
+
+        /* Star field background */
+        #auth-screen::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+                radial-gradient(1px 1px at 35% 8%,  rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 55% 30%, rgba(255,255,255,0.9) 0%, transparent 100%),
+                radial-gradient(1px 1px at 75% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 88% 40%, rgba(255,255,255,0.7) 0%, transparent 100%),
+                radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 28% 75%, rgba(255,255,255,0.8) 0%, transparent 100%),
+                radial-gradient(1px 1px at 50% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+                radial-gradient(1px 1px at 92% 65%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 5%  85%, rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 42% 92%, rgba(255,255,255,0.8) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 92%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 62% 68%, rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1px 1px at 22% 45%, rgba(255,255,255,0.4) 0%, transparent 100%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Glowing orbs */
+        #auth-screen::after {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 20% 50%, rgba(99,102,241,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 80% 50%, rgba(16,185,129,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 50% 90%, rgba(244,63,94,0.08) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Two-column split */
+        .auth-layout {
+            display: flex; width: 100%; height: 100%; position: relative; z-index: 1;
+        }
+
+        /* Left: branding panel */
+        .auth-left {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; padding: 60px;
+            position: relative;
+        }
+        .auth-wordmark {
+            font-size: 36px; font-weight: 600; font-style: italic;
+            color: #fff; letter-spacing: -1px; margin-bottom: 14px;
+            text-shadow: 0 0 40px rgba(99,102,241,0.5);
+        }
+        .auth-tagline {
+            font-size: 15px; color: rgba(255,255,255,0.5);
+            font-weight: 400; line-height: 1.6; max-width: 280px;
+            letter-spacing: 0.01em;
+        }
+        .auth-globe {
+            font-size: 96px; margin-bottom: 32px; display: block;
+            animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(99,102,241,0.4));
+        }
+
+        /* Floating destination badges */
+        .auth-dest {
+            position: absolute;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px);
+            border-radius: 20px; padding: 6px 14px;
+            font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.7);
+            letter-spacing: 0.04em;
+            animation: drift linear infinite;
+        }
+        .auth-dest:nth-child(1) { top: 18%; left: 55%; animation-duration: 8s; animation-delay: 0s; }
+        .auth-dest:nth-child(2) { top: 38%; left: 62%; animation-duration: 11s; animation-delay: -3s; }
+        .auth-dest:nth-child(3) { top: 58%; left: 52%; animation-duration: 9s;  animation-delay: -5s; }
+        .auth-dest:nth-child(4) { top: 72%; left: 65%; animation-duration: 12s; animation-delay: -2s; }
+        .auth-dest:nth-child(5) { top: 25%; left: 72%; animation-duration: 10s; animation-delay: -7s; }
+
+        /* Right: form panel */
+        .auth-right {
+            width: 420px; flex-shrink: 0;
+            background: rgba(255,255,255,0.04);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 48px 40px;
+        }
+        .auth-card {
+            width: 100%; animation: slideUp 0.4s ease-out both;
+        }
+        .auth-card h2 {
+            font-size: 24px; font-weight: 600; letter-spacing: -0.5px;
+            margin: 0 0 6px; color: #fff;
+        }
+        .auth-card p {
+            color: rgba(255,255,255,0.4); font-size: 13px;
+            margin: 0 0 28px; line-height: 1.5;
+        }
         .auth-input {
-            display: block; width: 100%; padding: 9px 12px; margin-bottom: 10px;
-            border: 1px solid var(--border); border-radius: 10px;
-            font-family: inherit; font-size: 13px; background: #f9fafb;
-            outline: none; transition: border-color 0.15s;
+            display: block; width: 100%; padding: 11px 14px; margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+            font-family: inherit; font-size: 13px;
+            background: rgba(255,255,255,0.06); color: #fff;
+            outline: none; transition: border-color 0.15s, background 0.15s;
         }
-        .auth-input:focus { border-color: var(--color-lodging); }
+        .auth-input::placeholder { color: rgba(255,255,255,0.3); }
+        .auth-input:focus {
+            border-color: rgba(99,102,241,0.7);
+            background: rgba(255,255,255,0.09);
+        }
         .auth-btn {
-            width: 100%; padding: 10px; background: var(--color-lodging); color: #fff;
+            width: 100%; padding: 12px; margin-top: 4px;
+            background: #6366f1; color: #fff;
             border: none; border-radius: 10px; font-family: inherit;
-            font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
-            text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+            font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
         }
-        .auth-btn:hover { background: #4f46e5; }
-        #auth-toggle { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--muted); cursor: pointer; }
-        #auth-toggle span { color: var(--color-lodging); text-decoration: underline; }
-        #auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; min-height: 16px; }
+        .auth-btn:hover { background: #4f46e5; transform: translateY(-1px); }
+        .auth-btn:active { transform: translateY(0); }
+        #auth-toggle {
+            display: block; text-align: center; margin-top: 18px;
+            font-size: 12px; color: rgba(255,255,255,0.35); cursor: pointer;
+        }
+        #auth-toggle span { color: #a5b4fc; text-decoration: underline; }
+        #auth-error { color: #fca5a5; font-size: 12px; margin-top: 8px; min-height: 16px; }
+
+        /* Mobile: stack vertically */
+        @media (max-width: 680px) {
+            .auth-left  { display: none; }
+            .auth-right { width: 100%; border-left: none; }
+        }
 
         /* ── Groups Home ─────────────────────────────── */
         #groups-screen { background: var(--bg); padding: 0; z-index: 40; overflow-y: auto; }
@@ -409,14 +531,35 @@
 
 <!-- ═══════════════════════ AUTH ════════════════════════════════════ -->
 <div id="auth-screen" class="screen">
-    <div class="auth-card">
-        <h2 id="auth-title">Welcome back</h2>
-        <p id="auth-subtitle">Sign in to access your trips</p>
-        <input class="auth-input" type="email"    id="auth-email"    placeholder="Email address" autocomplete="email">
-        <input class="auth-input" type="password" id="auth-password" placeholder="Password"      autocomplete="current-password">
-        <button class="auth-btn" id="auth-submit">Sign In</button>
-        <div id="auth-error"></div>
-        <span id="auth-toggle">No account? <span id="auth-toggle-link">Create one</span></span>
+    <div class="auth-layout">
+
+        <!-- Left branding panel -->
+        <div class="auth-left">
+            <span class="auth-globe">🌍</span>
+            <div class="auth-wordmark">RoamBudget</div>
+            <p class="auth-tagline">Split costs, track spending, and settle up — wherever the trip takes you.</p>
+
+            <!-- Floating destination badges -->
+            <div class="auth-dest">✈️ Tokyo</div>
+            <div class="auth-dest">🏖️ Tulum</div>
+            <div class="auth-dest">🗼 Paris</div>
+            <div class="auth-dest">🌴 Jamaica</div>
+            <div class="auth-dest">🎭 Barcelona</div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-right">
+            <div class="auth-card">
+                <h2 id="auth-title">Welcome back</h2>
+                <p id="auth-subtitle">Sign in to access your trips</p>
+                <input class="auth-input" type="email"    id="auth-email"    placeholder="Email address" autocomplete="email">
+                <input class="auth-input" type="password" id="auth-password" placeholder="Password"      autocomplete="current-password">
+                <button class="auth-btn" id="auth-submit">Sign In</button>
+                <div id="auth-error"></div>
+                <span id="auth-toggle">No account? <span id="auth-toggle-link">Create one</span></span>
+            </div>
+        </div>
+
     </div>
 </div>
 
