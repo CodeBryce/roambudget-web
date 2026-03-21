@@ -656,6 +656,7 @@ async function syncProfileToAllMemberships() {
 async function init() {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
+        isInitialised = true;  // set IMMEDIATELY — blocks onAuthStateChange from also running
         currentSession = session;
         const meta = session.user.user_metadata || {};
         currentDisplayName = meta.display_name || "";
@@ -665,7 +666,6 @@ async function init() {
             initColorSwatches("setup");
             showScreen("profile-screen");
         } else {
-            isInitialised = true;
             syncProfileToAllMemberships();
             showScreen("groups-screen");
             debouncedLoadGroups();
@@ -689,6 +689,7 @@ document.getElementById("btn-google-signin").onclick = async () => {
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === "SIGNED_IN" && session) {
         if (isInitialised) return;  // already handled by init()
+        isInitialised = true;  // set IMMEDIATELY before any async work
         currentSession = session;
         const meta = session.user.user_metadata || {};
         currentDisplayName = meta.display_name || meta.full_name || "";
@@ -700,7 +701,6 @@ sb.auth.onAuthStateChange(async (event, session) => {
             initColorSwatches("setup");
             showScreen("profile-screen");
         } else {
-            isInitialised = true;
             syncProfileToAllMemberships();
             showScreen("groups-screen");
             debouncedLoadGroups();
