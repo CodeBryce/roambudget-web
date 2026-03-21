@@ -1,0 +1,9 @@
+config.js
+__pycache__/
+*.py[cod]
+.env
+.env.*
+venv/
+.DS_Store
+Thumbs.db
+.vscode/
