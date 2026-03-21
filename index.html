@@ -604,8 +604,15 @@ let currentTripRow = null;
 let currentSession = null;
 let confirmCallback = null;
 let isInitialised  = false;  // prevents double loadGroups on page load
+let loadGroupsTimer = null;   // debounce timer for loadGroups
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// ── Debounced loadGroups — collapses rapid successive calls into one ─
+function debouncedLoadGroups() {
+    clearTimeout(loadGroupsTimer);
+    loadGroupsTimer = setTimeout(loadGroups, 200);
+}
 
 // ── Screen router ────────────────────────────────────────────────
 function showScreen(id) {
@@ -640,7 +647,6 @@ document.getElementById("confirm-ok").onclick = () => {
 // ── Sync profile to all trip_members rows ────────────────────────
 async function syncProfileToAllMemberships() {
     if (!currentDisplayName || !currentSession) return;
-    // Use upsert with ignoreDuplicates to safely handle clock skew causing double SIGNED_IN events
     await sb.from("trip_members")
         .update({ display_name: currentDisplayName, avatar_color: currentAvatarColor })
         .eq("user_id", currentSession.user.id);
@@ -662,7 +668,7 @@ async function init() {
             isInitialised = true;
             syncProfileToAllMemberships();
             showScreen("groups-screen");
-            loadGroups();
+            debouncedLoadGroups();
         }
     } else {
         showScreen("auth-screen");
@@ -697,7 +703,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
             isInitialised = true;
             syncProfileToAllMemberships();
             showScreen("groups-screen");
-            loadGroups();
+            debouncedLoadGroups();
         }
     }
     if (event === "SIGNED_OUT") {
@@ -761,7 +767,7 @@ async function saveProfile(name, color, errorElId) {
 document.getElementById("btn-save-profile").onclick = async () => {
     const name = document.getElementById("setup-display-name").value.trim();
     const ok   = await saveProfile(name, currentAvatarColor, "setup-error");
-    if (ok) { isInitialised = true; syncProfileToAllMemberships(); showScreen("groups-screen"); loadGroups(); }
+    if (ok) { isInitialised = true; syncProfileToAllMemberships(); showScreen("groups-screen"); debouncedLoadGroups(); }
 };
 document.getElementById("setup-display-name").oninput = function() {
     document.getElementById("setup-avatar-preview").textContent = getInitials(this.value) || "?";
@@ -792,23 +798,14 @@ document.getElementById("btn-logout-dash").onclick = signOut;
 // ── Groups Home ──────────────────────────────────────────────────
 async function loadGroups() {
     if (!currentSession) return;
-    const { data: rawData, error } = await sb
-    .from("trip_members")
-    .select("trip_id, trips(id, trip_code, name, creator_id)")
-    .eq("user_id", currentSession.user.id);
-
-    // Deduplicate by trip_code in case of multiple membership rows
-    const seen = new Set();
-    const data = (rawData || []).filter(row => {
-        const code = row.trips?.trip_code;
-        if (!code || seen.has(code)) return false;
-        seen.add(code);
-        return true;
-    });
+    const { data, error } = await sb
+        .from("trip_members")
+        .select("trip_id, trips(id, trip_code, name, creator_id)")
+        .eq("user_id", currentSession.user.id);
     const list = document.getElementById("groups-list");
+    list.innerHTML = "";  // clear immediately so double-calls never stack visually
     if (error) { list.innerHTML = `<div class="empty-groups" style="color:#ef4444;">Error: ${escHtml(error.message)}</div>`; return; }
     if (!data || data.length === 0) { list.innerHTML = `<div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>`; return; }
-    list.innerHTML = "";
     for (const row of data) {
         const trip        = row.trips;
         const isCreator   = trip.creator_id === currentSession.user.id;
@@ -850,7 +847,7 @@ document.getElementById("btn-create-trip").onclick = async () => {
     document.getElementById("new-trip-code").value = "";
     document.getElementById("new-trip-name").value = "";
     toast(`✓ Trip ${code} created`);
-    loadGroups();
+    debouncedLoadGroups();
 };
 
 document.getElementById("btn-join-trip").onclick = async () => {
@@ -863,7 +860,7 @@ document.getElementById("btn-join-trip").onclick = async () => {
     if (memErr && !memErr.message.includes("duplicate")) { toast("⚠️ " + memErr.message); return; }
     document.getElementById("join-trip-code").value = "";
     toast(`✓ Joined ${code}`);
-    loadGroups();
+    debouncedLoadGroups();
 };
 
 function promptLeaveTrip(code, displayName) {
@@ -874,7 +871,7 @@ async function leaveTrip(code) {
     if (!tripRow) { toast("⚠️ Trip not found."); return; }
     const { error } = await sb.from("trip_members").delete().eq("trip_id", tripRow.id).eq("user_id", currentSession.user.id);
     if (error) { toast("⚠️ " + error.message); return; }
-    toast(`Left ${code}`); loadGroups();
+    toast(`Left ${code}`); debouncedLoadGroups();
 }
 
 function promptDeleteTrip(code, displayName) {
@@ -884,7 +881,7 @@ async function deleteTrip(code) {
     const { data: { session } } = await sb.auth.getSession();
     const res = await fetch(`${TRIPS_API}/${code}`, { method: "DELETE", headers: { "Authorization": `Bearer ${session.access_token}` } });
     if (!res.ok) { const err = await res.json().catch(() => ({})); toast("⚠️ " + (err.detail || "Delete failed")); return; }
-    toast(`Trip ${code} deleted`); loadGroups();
+    toast(`Trip ${code} deleted`); debouncedLoadGroups();
 }
 
 async function enterTrip(code, displayName) {
@@ -898,7 +895,7 @@ async function enterTrip(code, displayName) {
 document.getElementById("btn-back").onclick = () => {
     currentTripId = null; currentTripRow = null;
     if (myChart) { myChart.destroy(); myChart = null; }
-    showScreen("groups-screen"); loadGroups();
+    showScreen("groups-screen"); debouncedLoadGroups();
 };
 
 // ── Member strip ─────────────────────────────────────────────────
