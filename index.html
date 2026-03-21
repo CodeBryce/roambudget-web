@@ -791,10 +791,19 @@ document.getElementById("btn-logout-dash").onclick = signOut;
 // ── Groups Home ──────────────────────────────────────────────────
 async function loadGroups() {
     if (!currentSession) return;
-    const { data, error } = await sb
-        .from("trip_members")
-        .select("trip_id, trips(id, trip_code, name, creator_id)")
-        .eq("user_id", currentSession.user.id);
+    const { data: rawData, error } = await sb
+    .from("trip_members")
+    .select("trip_id, trips(id, trip_code, name, creator_id)")
+    .eq("user_id", currentSession.user.id);
+
+    // Deduplicate by trip_code in case of multiple membership rows
+    const seen = new Set();
+    const data = (rawData || []).filter(row => {
+        const code = row.trips?.trip_code;
+        if (!code || seen.has(code)) return false;
+        seen.add(code);
+        return true;
+    });
     const list = document.getElementById("groups-list");
     if (error) { list.innerHTML = `<div class="empty-groups" style="color:#ef4444;">Error: ${escHtml(error.message)}</div>`; return; }
     if (!data || data.length === 0) { list.innerHTML = `<div class="empty-groups"><div>🗺️</div>No trips yet — create or join one below.</div>`; return; }
