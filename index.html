@@ -762,26 +762,16 @@
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="config.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════════
 //  CONFIG  —  values injected from window.ROAMBUDGET_CONFIG
 //  Set these in a gitignored config.js file (see README).
 //  NEVER hardcode real keys here — this file is public.
 // ══════════════════════════════════════════════════════════════════
-const _cfg     = window.ROAMBUDGET_CONFIG || {};
-const SB_URL   = _cfg.SB_URL   || "";
-const SB_KEY   = _cfg.SB_KEY   || "";
-const API_URL  = _cfg.API_URL  || "https://roambudget-server.onrender.com/expenses";
-const TRIPS_API = _cfg.TRIPS_API || "https://roambudget-server.onrender.com/trips";
-
-if (!SB_URL || !SB_KEY) {
-    document.body.innerHTML = `<div style="font-family:sans-serif;padding:40px;color:#ef4444;">
-        <strong>Missing config.</strong> Copy <code>config.example.js</code> to 
-        <code>config.js</code> and fill in your Supabase credentials.
-    </div>`;
-    throw new Error("Missing ROAMBUDGET_CONFIG — see config.example.js");
-}
+const SB_URL   = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
+const SB_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";
+const API_URL  = "https://roambudget-server.onrender.com/expenses";
+const TRIPS_API = "https://roambudget-server.onrender.com/trips";
 
 const AVATAR_COLORS = [
     "#6366f1","#f43f5e","#10b981","#f59e0b",
