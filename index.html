@@ -164,34 +164,32 @@
             color: var(--muted); font-size: 13px; margin: 0 0 28px;
             line-height: 1.5;
         }
-        .auth-input {
-            display: block; width: 100%; padding: 10px 13px; margin-bottom: 10px;
-            border: 1px solid var(--border); border-radius: 10px;
-            font-family: inherit; font-size: 13px;
-            background: #f9fafb; color: var(--text);
-            outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+        /* Google sign-in button */
+        .google-btn {
+            width: 100%; padding: 12px 16px;
+            background: #fff; color: #3c4043;
+            border: 1px solid #dadce0; border-radius: 10px;
+            font-family: inherit; font-size: 13px; font-weight: 500;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 10px;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        .auth-input:focus {
-            border-color: var(--color-lodging);
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-            background: #fff;
+        .google-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            transform: translateY(-1px);
         }
-        .auth-btn {
-            width: 100%; padding: 11px; margin-top: 4px;
-            background: var(--text); color: #fff;
-            border: none; border-radius: 10px; font-family: inherit;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-            text-transform: uppercase; cursor: pointer;
-            transition: opacity 0.15s, transform 0.1s;
+        .google-btn:active { transform: translateY(0); }
+        .google-btn svg { flex-shrink: 0; }
+        .auth-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0; color: var(--subtle); font-size: 11px;
         }
-        .auth-btn:hover  { opacity: 0.85; transform: translateY(-1px); }
-        .auth-btn:active { transform: translateY(0); }
-        #auth-toggle {
-            display: block; text-align: center; margin-top: 16px;
-            font-size: 12px; color: var(--subtle); cursor: pointer;
+        .auth-divider::before, .auth-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
         }
-        #auth-toggle span { color: var(--color-lodging); text-decoration: underline; }
-        #auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; min-height: 16px; }
+        #auth-error { color: #ef4444; font-size: 12px; margin-top: 12px; min-height: 16px; text-align: center; }
 
         /* Mobile */
         @media (max-width: 700px) {
@@ -578,13 +576,20 @@
     <div class="auth-right">
         <div class="auth-card">
             <div class="auth-card-eyebrow">RoamBudget</div>
-            <h2 id="auth-title">Welcome back</h2>
-            <p id="auth-subtitle">Sign in to access your trips</p>
-            <input class="auth-input" type="email"    id="auth-email"    placeholder="Email address" autocomplete="email">
-            <input class="auth-input" type="password" id="auth-password" placeholder="Password"      autocomplete="current-password">
-            <button class="auth-btn" id="auth-submit">Sign In</button>
+            <h2>Welcome</h2>
+            <p>Sign in to start tracking your group travel expenses.</p>
+
+            <button class="google-btn" id="btn-google-signin">
+                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+            </button>
+
             <div id="auth-error"></div>
-            <span id="auth-toggle">No account? <span id="auth-toggle-link">Create one</span></span>
         </div>
     </div>
 
@@ -757,14 +762,26 @@
 <!-- Toast -->
 <div id="toast"></div>
 
+<script src="config.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════════
-//  CONFIG  —  replace with your real values
+//  CONFIG  —  values injected from window.ROAMBUDGET_CONFIG
+//  Set these in a gitignored config.js file (see README).
+//  NEVER hardcode real keys here — this file is public.
 // ══════════════════════════════════════════════════════════════════
-const SB_URL  = "https://nlxpcmogqbbmpnowfwhi.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seHBjbW9ncWJibXBub3dmd2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTU4MTEsImV4cCI6MjA4OTQzMTgxMX0.37Eqm_8T4QfMKz3qzX6-kGFUz5xOfEIwmP6YEIp1jNQ";   // ← replace
-const API_URL = "https://roambudget-server.onrender.com/expenses";
-const TRIPS_API = "https://roambudget-server.onrender.com/trips";
+const _cfg     = window.ROAMBUDGET_CONFIG || {};
+const SB_URL   = _cfg.SB_URL   || "";
+const SB_KEY   = _cfg.SB_KEY   || "";
+const API_URL  = _cfg.API_URL  || "https://roambudget-server.onrender.com/expenses";
+const TRIPS_API = _cfg.TRIPS_API || "https://roambudget-server.onrender.com/trips";
+
+if (!SB_URL || !SB_KEY) {
+    document.body.innerHTML = `<div style="font-family:sans-serif;padding:40px;color:#ef4444;">
+        <strong>Missing config.</strong> Copy <code>config.example.js</code> to 
+        <code>config.js</code> and fill in your Supabase credentials.
+    </div>`;
+    throw new Error("Missing ROAMBUDGET_CONFIG — see config.example.js");
+}
 
 const AVATAR_COLORS = [
     "#6366f1","#f43f5e","#10b981","#f59e0b",
@@ -789,7 +806,6 @@ let currentTripId   = null;   // trip_code string
 let currentTripRow  = null;   // full trips row
 let currentSession  = null;
 let confirmCallback = null;
-let isSignUp        = false;
 
 // ══════════════════════════════════════════════════════════════════
 //  SCREEN ROUTER
@@ -869,46 +885,52 @@ async function init() {
     }
 }
 
-document.getElementById("auth-submit").onclick = async () => {
-    const email    = document.getElementById("auth-email").value.trim();
-    const password = document.getElementById("auth-password").value;
-    const errEl    = document.getElementById("auth-error");
+// Google OAuth sign-in
+document.getElementById("btn-google-signin").onclick = async () => {
+    const errEl = document.getElementById("auth-error");
     errEl.textContent = "";
-    if (!email || !password) { errEl.textContent = "Fill in both fields."; return; }
 
-    const { data, error } = isSignUp
-        ? await sb.auth.signUp({ email, password })
-        : await sb.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+            redirectTo: window.location.origin + window.location.pathname,
+        }
+    });
 
-    if (error) { errEl.textContent = error.message; return; }
-    if (isSignUp) {
-        errEl.style.color = "#16a34a";
-        errEl.textContent = "Check your email to confirm.";
-        return;
+    if (error) {
+        errEl.textContent = error.message;
     }
-    currentSession = data.session;
-    const meta = data.session.user.user_metadata || {};
-    currentDisplayName = meta.display_name || "";
-    currentAvatarColor = meta.avatar_color || AVATAR_COLORS[0];
-    updateProfileButtons();
-    if (!currentDisplayName) {
-        initColorSwatches("setup");
-        showScreen("profile-screen");
-    } else {
-        syncProfileToAllMemberships();
-        showScreen("groups-screen");
-        loadGroups();
-    }
+    // On success Supabase redirects to Google, then back to the app.
+    // The auth state change listener below handles the session on return.
 };
 
-document.getElementById("auth-toggle").onclick = () => {
-    isSignUp = !isSignUp;
-    document.getElementById("auth-title").textContent       = isSignUp ? "Create account"    : "Welcome back";
-    document.getElementById("auth-subtitle").textContent    = isSignUp ? "Join your trip"    : "Sign in to access your trips";
-    document.getElementById("auth-submit").textContent      = isSignUp ? "Sign Up"           : "Sign In";
-    document.getElementById("auth-toggle-link").textContent = isSignUp ? "Sign in instead"   : "Create one";
-    document.getElementById("auth-error").textContent       = "";
-};
+// Listen for auth state changes — fires when Google redirects back
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_IN" && session) {
+        currentSession = session;
+        const meta = session.user.user_metadata || {};
+        // Google provides full_name and avatar_url — pre-fill display name
+        currentDisplayName = meta.display_name || meta.full_name || "";
+        currentAvatarColor = meta.avatar_color || AVATAR_COLORS[0];
+        updateProfileButtons();
+        if (!currentDisplayName) {
+            // Pre-fill name input from Google full_name if available
+            const nameInput = document.getElementById("setup-display-name");
+            if (nameInput && meta.full_name) nameInput.value = meta.full_name;
+            initColorSwatches("setup");
+            showScreen("profile-screen");
+        } else {
+            syncProfileToAllMemberships();
+            showScreen("groups-screen");
+            loadGroups();
+        }
+    }
+    if (event === "SIGNED_OUT") {
+        currentSession = null;
+        currentTripId  = null;
+        showScreen("auth-screen");
+    }
+});
 
 
 // ══════════════════════════════════════════════════════════════════
