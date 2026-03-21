@@ -654,9 +654,11 @@ async function syncProfileToAllMemberships() {
 
 // ── Init ─────────────────────────────────────────────────────────
 async function init() {
+    // Block onAuthStateChange from running while we check the session.
+    // If no session exists we release the block so fresh OAuth redirects still work.
+    isInitialised = true;
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
-        isInitialised = true;  // set IMMEDIATELY — blocks onAuthStateChange from also running
         currentSession = session;
         const meta = session.user.user_metadata || {};
         currentDisplayName = meta.display_name || "";
@@ -671,6 +673,8 @@ async function init() {
             debouncedLoadGroups();
         }
     } else {
+        // No existing session — release the block so Google OAuth redirect works
+        isInitialised = false;
         showScreen("auth-screen");
     }
 }
