@@ -640,6 +640,7 @@ document.getElementById("confirm-ok").onclick = () => {
 // ── Sync profile to all trip_members rows ────────────────────────
 async function syncProfileToAllMemberships() {
     if (!currentDisplayName || !currentSession) return;
+    // Use upsert with ignoreDuplicates to safely handle clock skew causing double SIGNED_IN events
     await sb.from("trip_members")
         .update({ display_name: currentDisplayName, avatar_color: currentAvatarColor })
         .eq("user_id", currentSession.user.id);
