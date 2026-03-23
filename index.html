@@ -248,12 +248,13 @@
         .total-pill .label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
         .total-pill .amount { font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
         .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; }
-        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .sidebar::-webkit-scrollbar { display: none; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
-        .chart-card { padding: 16px; flex-shrink: 0; }
-        .chart-wrap { height: 140px; display: flex; justify-content: center; }
+        .chart-card { padding: 16px; flex-shrink: 0; overflow: hidden; }
+        .chart-wrap { height: 120px; display: flex; justify-content: center; }
         .section-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 8px; }
-        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
+        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 140px; overflow-y: auto; }
         .balance-list::-webkit-scrollbar { width: 3px; }
         .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
