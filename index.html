@@ -248,13 +248,12 @@
         .total-pill .label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; }
         .total-pill .amount { font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
         .grid-main { display: grid; grid-template-columns: 300px 1fr; gap: 14px; flex-grow: 1; min-height: 0; }
-        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .sidebar::-webkit-scrollbar { display: none; }
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
         .chart-card { padding: 16px; flex-shrink: 0; overflow: hidden; }
         .chart-wrap { height: 120px; display: flex; justify-content: center; }
         .section-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 8px; }
-        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 140px; overflow-y: auto; }
+        .balance-list { display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
         .balance-list::-webkit-scrollbar { width: 3px; }
         .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
@@ -319,6 +318,21 @@
         .delete-btn:hover { color: #ef4444; background: #fff1f2; }
         .empty-state { text-align: center; padding: 50px 20px; color: var(--subtle); font-size: 13px; }
         .empty-state div { font-size: 28px; margin-bottom: 8px; }
+
+
+        /* ── Balance modal ───────────────────────────── */
+        #balance-modal { position: fixed; inset: 0; z-index: 155; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
+        #balance-modal.hidden { display: none; }
+        .balance-modal-card { background: var(--card); border-radius: 16px; padding: 24px; width: 340px; max-height: 80vh; display: flex; flex-direction: column; animation: slideUp 0.2s ease-out both; }
+        .balance-modal-card h3 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+        .balance-modal-subtitle { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+        .balance-modal-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex-grow: 1; }
+        .balance-modal-list::-webkit-scrollbar { width: 3px; }
+        .balance-modal-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .balance-modal-close { margin-top: 16px; width: 100%; padding: 9px; background: var(--text); color: #fff; border: none; border-radius: 9px; font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+        .balance-modal-close:hover { opacity: 0.8; }
+        .see-more-btn { margin-top: 8px; width: 100%; padding: 7px; background: none; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+        .see-more-btn:hover { border-color: #a5b4fc; color: var(--color-lodging); background: #eef2ff; }
 
         /* ── Toast ───────────────────────────────────── */
         #toast {
@@ -571,6 +585,16 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- BALANCE MODAL -->
+<div id="balance-modal" class="hidden">
+    <div class="balance-modal-card">
+        <h3>Balance Sheet</h3>
+        <p class="balance-modal-subtitle">Net per person across all expenses</p>
+        <div class="balance-modal-list" id="balance-modal-list"></div>
+        <button class="balance-modal-close" onclick="document.getElementById('balance-modal').classList.add('hidden')">Close</button>
     </div>
 </div>
 
@@ -982,15 +1006,35 @@ function renderUI(expenses) {
         .map(([name, b]) => ({ name, net: b.paid - b.owed }))
         .filter(({ net }) => Math.abs(net) >= 0.01)
         .sort((a, b) => b.net - a.net);
-    if (entries.length === 0) { settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">No data.</div>`; }
-    else entries.forEach(({ name, net }) => {
-        const absNet = Math.abs(net);
-        let cls, label, valStr;
-        if (absNet < 0.01) { cls = "even"; label = "Settled"; valStr = "—"; }
-        else if (net > 0)  { cls = "owed"; label = "is owed"; valStr = `+$${absNet.toFixed(2)}`; }
-        else               { cls = "owes"; label = "owes";     valStr = `-$${absNet.toFixed(2)}`; }
-        settleList.insertAdjacentHTML("beforeend", `<div class="balance-card ${cls}"><div><div class="bname">${escHtml(name)}</div><div class="bsub">${label}</div></div><span class="bval">${valStr}</span></div>`);
-    });
+    if (entries.length === 0) {
+        settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">All settled up!</div>`;
+    } else {
+        // Show max 3 inline, rest in modal
+        const MAX_INLINE = 3;
+        const shown = entries.slice(0, MAX_INLINE);
+        shown.forEach(({ name, net }) => {
+            const absNet = Math.abs(net);
+            const cls    = net > 0 ? "owed" : "owes";
+            const label  = net > 0 ? "is owed" : "owes";
+            const valStr = net > 0 ? `+$${absNet.toFixed(2)}` : `-$${absNet.toFixed(2)}`;
+            settleList.insertAdjacentHTML("beforeend", `<div class="balance-card ${cls}"><div><div class="bname">${escHtml(name)}</div><div class="bsub">${label}</div></div><span class="bval">${valStr}</span></div>`);
+        });
+        if (entries.length > MAX_INLINE) {
+            settleList.insertAdjacentHTML("beforeend",
+                `<button class="see-more-btn" onclick="openBalanceModal()">See all ${entries.length} members →</button>`
+            );
+        }
+        // Populate modal with full list
+        const modalList = document.getElementById("balance-modal-list");
+        modalList.innerHTML = "";
+        entries.forEach(({ name, net }) => {
+            const absNet = Math.abs(net);
+            const cls    = net > 0 ? "owed" : "owes";
+            const label  = net > 0 ? "is owed" : "owes";
+            const valStr = net > 0 ? `+$${absNet.toFixed(2)}` : `-$${absNet.toFixed(2)}`;
+            modalList.insertAdjacentHTML("beforeend", `<div class="balance-card ${cls}" style="margin-bottom:0;"><div><div class="bname">${escHtml(name)}</div><div class="bsub">${label}</div></div><span class="bval">${valStr}</span></div>`);
+        });
+    }
 }
 
 function updateChart(catTotals) {
@@ -1038,6 +1082,15 @@ async function deleteExpense(id) {
         toast("Expense removed"); fetchExpenses();
     } catch (err) { toast("⚠️ Delete failed — " + err.message); if (row) row.style.opacity = "1"; }
 }
+
+function openBalanceModal() {
+    document.getElementById("balance-modal").classList.remove("hidden");
+}
+
+// Close modal on backdrop click
+document.getElementById("balance-modal").addEventListener("click", function(e) {
+    if (e.target === this) this.classList.add("hidden");
+});
 
 function escHtml(str) {
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
