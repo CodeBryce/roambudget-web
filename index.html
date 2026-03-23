@@ -253,7 +253,7 @@
         .chart-card { padding: 16px; flex-shrink: 0; }
         .chart-wrap { height: 140px; display: flex; justify-content: center; }
         .section-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 8px; }
-        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; }
+        .balance-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
         .balance-list::-webkit-scrollbar { width: 3px; }
         .balance-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .balance-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-radius: 10px; font-size: 11px; }
@@ -977,7 +977,10 @@ function renderUI(expenses) {
         const color = CAT_COLORS[cat] || "#6b7280";
         summaryDiv.insertAdjacentHTML("beforeend", `<div class="cat-pill"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:5px;vertical-align:middle;"></span>${escHtml(cat)}: <span class="cat-amt" style="color:${color};">$${sum.toFixed(2)}</span></div>`);
     }
-    const entries = Object.entries(balances).map(([name, b]) => ({ name, net: b.paid - b.owed })).sort((a, b) => b.net - a.net);
+    const entries = Object.entries(balances)
+        .map(([name, b]) => ({ name, net: b.paid - b.owed }))
+        .filter(({ net }) => Math.abs(net) >= 0.01)
+        .sort((a, b) => b.net - a.net);
     if (entries.length === 0) { settleList.innerHTML = `<div style="color:var(--subtle);font-size:11px;">No data.</div>`; }
     else entries.forEach(({ name, net }) => {
         const absNet = Math.abs(net);
