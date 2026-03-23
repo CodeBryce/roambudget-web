@@ -1,49 +1,72 @@
-# RoamBudget
+# RoamBudget 🌍
 
-A full-stack shared travel expense tracker. Create trip groups, log expenses, track who paid what, and settle up with Venmo or Cash App deep links.
+**Live app → [codebryce.github.io/roambudget-web](https://codebryce.github.io/roambudget-web/)**
+
+A full-stack shared travel expense tracker for friend groups. Create a trip, invite your crew with a join code, log expenses, and see instantly who owes whom.
+
+---
+
+## Features
+
+- **Google Sign-In** — one-tap auth via Google OAuth
+- **Trip Groups** — create or join trips with a shared code
+- **Expense Tracking** — log expenses by category with split counts
+- **Balance Sheet** — live net per-person balance (who's owed, who owes)
+- **Spending Chart** — doughnut chart breakdown by category
+- **Member Profiles** — avatars with custom colors for each trip member
+- **Venmo & Cash App** — deep links for one-tap settlements
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | HTML/JS, Tailwind CSS, Chart.js, Supabase JS SDK |
+| Frontend | HTML/JS, Tailwind CSS, Chart.js |
 | Backend | Python FastAPI, hosted on Render |
 | Database | Supabase (PostgreSQL) with Row Level Security |
-| Auth | Supabase Auth (email/password + user metadata) |
+| Auth | Google OAuth via Supabase |
+
+---
 
 ## Local Setup
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/roambudget-web
+git clone https://github.com/CodeBryce/roambudget-web.git
 cd roambudget-web
 ```
 
 ### 2. Configure credentials
-```bash
-cp config.example.js config.js
+Create a `config.js` file in the root (gitignored):
+```js
+window.ROAMBUDGET_CONFIG = {
+    SB_URL:    "https://YOUR_PROJECT_ID.supabase.co",
+    SB_KEY:    "YOUR_SUPABASE_ANON_KEY",
+    API_URL:   "https://your-app.onrender.com/expenses",
+    TRIPS_API: "https://your-app.onrender.com/trips",
+};
 ```
-Open `config.js` and fill in your Supabase project URL and anon key.  
-Find these in: **Supabase Dashboard → Settings → API**
-
-> ⚠️ `config.js` is gitignored. Never commit it.
 
 ### 3. Run the Supabase migration
-In **Supabase → SQL Editor**, run the contents of `migration.sql` to create the required tables and RLS policies.
+In **Supabase → SQL Editor**, run `migration.sql` to create the required tables and RLS policies.
 
 ### 4. Open the app
-Open `index.html` directly in a browser, or serve it with any static file server:
 ```bash
 npx serve .
 ```
 
-## Backend Setup (Render)
+---
 
-1. Deploy `main.py` to Render as a Python web service
-2. Set these environment variables in Render → Environment:
-   - `SUPABASE_URL` — your Supabase project URL
-   - `SUPABASE_KEY` — your Supabase **service_role** key (for server-side operations)
-3. Make sure `requirements.txt` is in the repo root
+## Backend
+
+The backend lives in a separate repo → [roambudget-server](https://github.com/CodeBryce/roambudget-server)
+
+Built with Python FastAPI, deployed on Render. Set these environment variables in Render:
+- `SUPABASE_URL`
+- `SUPABASE_KEY` (service role key)
+
+---
 
 ## Database Schema
 
@@ -54,7 +77,6 @@ npx serve .
 | trip_code | text | Unique join code e.g. `JAMAICA2026` |
 | name | text | Friendly display name |
 | creator_id | uuid | References auth.users |
-| require_payment | boolean | |
 
 ### `trip_expenses`
 | Column | Type | Notes |
@@ -66,7 +88,6 @@ npx serve .
 | category | text | Lodging / Food / Transport / Activity |
 | paid_by | text | Display name of payer |
 | split_count | int | Number of people splitting |
-| user_id | uuid | Auth user who submitted |
 
 ### `trip_members`
 | Column | Type | Notes |
@@ -77,10 +98,8 @@ npx serve .
 | display_name | text | Cached from user metadata |
 | avatar_color | text | Hex color for avatar chip |
 
-## Security Notes
+---
 
-- Row Level Security (RLS) is enabled on all tables
-- The anon key is safe to use client-side — Supabase RLS policies enforce access control
-- The service_role key is only used server-side via Render environment variables and is never exposed to the client
-- Users can only read trip_members rows for trips they belong to
-- Only trip creators can delete their own trips
+## Built With
+
+This project was built using AI-assisted development (vibe coding) with [Claude](https://claude.ai).
