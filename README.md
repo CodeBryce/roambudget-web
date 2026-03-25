@@ -14,7 +14,7 @@ A full-stack shared travel expense tracker for friend groups. Create a trip, inv
 - **Balance Sheet** — live net per-person balance (who's owed, who owes)
 - **Spending Chart** — doughnut chart breakdown by category
 - **Member Profiles** — avatars with custom colors for each trip member
-- **Venmo & Cash App** — deep links for one-tap settlements
+
 
 ---
 
